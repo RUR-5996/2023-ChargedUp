@@ -31,7 +31,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+    SWERVE.report();
+  }
 
   @Override
   public void autonomousInit() {}
@@ -45,6 +47,7 @@ public class Robot extends TimedRobot {
     SwerveDef.frModule.enabledInit();
     SwerveDef.rlModule.enabledInit();
     SwerveDef.rrModule.enabledInit();
+    SWERVE.init();
   }
 
   @Override

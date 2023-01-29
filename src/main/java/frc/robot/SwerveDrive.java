@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SwerveDrive {
 
@@ -64,6 +65,7 @@ public class SwerveDrive {
         odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
         angleHoldController.disableContinuousInput();
         angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+        testInit();
     }
 
     /**
@@ -99,15 +101,9 @@ public class SwerveDrive {
      */
     public static void periodic() {
 
-        if (fieldRelative) {
-            orientedDrive();
-        } else {
-            drive();
-        }
-
-        if (controller.getBackButtonPressed()) {
-            gyroReset();
-        }
+        //drive(0, 0, 0);
+        drive();
+        report();
     }
 
     /**
@@ -193,10 +189,10 @@ public class SwerveDrive {
      * Function for starting the calibration routine of the swerve modules
      */
     public static void testInit() {
-        flInitController = new SwerveDef.SteerPID(0.012, 0.0402645, 0.000894, 0.75, 0);
-        frInitController = new SwerveDef.SteerPID(0.012, 0.0402645, 0.000894, 0.75, 0);
-        rlInitController = new SwerveDef.SteerPID(0.012, 0.0402645, 0.000894, 0.75, 0);
-        rrInitController = new SwerveDef.SteerPID(0.012, 0.0402645, 0.000894, 0.75, 0);
+        flInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        frInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        rlInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        rrInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
     }
 
     /**
@@ -204,13 +200,13 @@ public class SwerveDrive {
      * TODO check, if this works with absolute encoders
      */
     public static void zeroDrive() {
-        flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs() - SwerveDef.FL_STEER_OFFSET));//TODO use built-in functions instead
+        flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));//TODO use built-in functions instead
 
-        frInitController.setOffset(SwerveDef.frModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs() - SwerveDef.FR_STEER_OFFSET));
+        frInitController.setOffset(SwerveDef.frModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs()));
 
-        rlInitController.setOffset(SwerveDef.rlModule.clampContinuousDegs(SwerveDef.rlModule.getBetterAnalogDegs() - SwerveDef.RL_STEER_OFFSET));
+        rlInitController.setOffset(SwerveDef.rlModule.clampContinuousDegs(SwerveDef.rlModule.getBetterAnalogDegs()));
 
-        rrInitController.setOffset(SwerveDef.rrModule.clampContinuousDegs(SwerveDef.rrModule.getBetterAnalogDegs() - SwerveDef.RR_STEER_OFFSET));
+        rrInitController.setOffset(SwerveDef.rrModule.clampContinuousDegs(SwerveDef.rrModule.getBetterAnalogDegs()));
 
         SwerveDef.flSteer.set(ControlMode.PercentOutput, flInitController.pidGet());
         SwerveDef.frSteer.set(ControlMode.PercentOutput, frInitController.pidGet());
@@ -247,5 +243,14 @@ public class SwerveDrive {
      */
     static void setOdometry(Pose2d pose, Rotation2d rot) {
         odometry.resetPosition(rot, modulePositions, pose);
+    }
+
+    public static void report() {
+        SmartDashboard.putNumber("FL encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));
+        SmartDashboard.putNumber("FR encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs()));
+        SmartDashboard.putNumber("RL encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.rlModule.getBetterAnalogDegs()));
+        SmartDashboard.putNumber("RR encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.rrModule.getBetterAnalogDegs()));
+
+        SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
     }
 }
