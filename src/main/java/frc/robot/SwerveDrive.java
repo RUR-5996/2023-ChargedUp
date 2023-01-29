@@ -44,10 +44,10 @@ public class SwerveDrive {
 
     //PID definitions
     //TODO use built-in controllers for module init
-    public static SwerveDef.SteerPID flInitController;
-    public static SwerveDef.SteerPID frInitController;
-    public static SwerveDef.SteerPID rlInitController;
-    public static SwerveDef.SteerPID rrInitController;
+    //public static SwerveDef.SteerPID flInitController;
+    //public static SwerveDef.SteerPID frInitController;
+    //public static SwerveDef.SteerPID rlInitController;
+    //public static SwerveDef.SteerPID rrInitController;
 
     /**
      * Function for getting the single instance of this class
@@ -189,10 +189,10 @@ public class SwerveDrive {
      * Function for starting the calibration routine of the swerve modules
      */
     public static void testInit() {
-        flInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        /*flInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
         frInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
         rlInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-        rrInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        rrInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);*/
     }
 
     /**
@@ -200,7 +200,7 @@ public class SwerveDrive {
      * TODO check, if this works with absolute encoders
      */
     public static void zeroDrive() {
-        flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));//TODO use built-in functions instead
+        /*flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));//TODO use built-in functions instead
 
         frInitController.setOffset(SwerveDef.frModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs()));
 
@@ -211,7 +211,7 @@ public class SwerveDrive {
         SwerveDef.flSteer.set(ControlMode.PercentOutput, flInitController.pidGet());
         SwerveDef.frSteer.set(ControlMode.PercentOutput, frInitController.pidGet());
         SwerveDef.rlSteer.set(ControlMode.PercentOutput, rlInitController.pidGet());
-        SwerveDef.rrSteer.set(ControlMode.PercentOutput, rrInitController.pidGet());
+        SwerveDef.rrSteer.set(ControlMode.PercentOutput, rrInitController.pidGet());*/
     }
 
     /**
@@ -246,10 +246,10 @@ public class SwerveDrive {
     }
 
     public static void report() {
-        SmartDashboard.putNumber("FL encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));
-        SmartDashboard.putNumber("FR encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs()));
-        SmartDashboard.putNumber("RL encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.rlModule.getBetterAnalogDegs()));
-        SmartDashboard.putNumber("RR encoder", SwerveDef.flModule.clampContinuousDegs(SwerveDef.rrModule.getBetterAnalogDegs()));
+        SmartDashboard.putNumber("FL encoder", SwerveDef.flModule.clampContinuousDegs());
+        SmartDashboard.putNumber("FR encoder", SwerveDef.flModule.clampContinuousDegs());
+        SmartDashboard.putNumber("RL encoder", SwerveDef.flModule.clampContinuousDegs());
+        SmartDashboard.putNumber("RR encoder", SwerveDef.flModule.clampContinuousDegs());
 
         SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
     }
