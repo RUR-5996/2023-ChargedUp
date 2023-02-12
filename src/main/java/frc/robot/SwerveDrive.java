@@ -20,8 +20,6 @@ public class SwerveDrive {
 
     //control variables
     static XboxController controller = SystemDef.controller;
-    static final double MF_DRIVE_COEFF = 0.5; // change to lower if needed
-    static double addDriveCoeff = 1;
 
     private static double xSpeed = 0;
     private static double ySpeed = 0;
@@ -61,11 +59,11 @@ public class SwerveDrive {
      * Function for setting up the SwerveDrive object
      */
     public void init() {
-        updateModulePosition();
-        odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
-        angleHoldController.disableContinuousInput();
-        angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
-        testInit();
+        //updateModulePosition();
+        //odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
+        //angleHoldController.disableContinuousInput();
+        //angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+        //testInit();
     }
 
     /**
@@ -102,17 +100,22 @@ public class SwerveDrive {
     public static void periodic() {
 
         //drive(0, 0, 0);
+        updateModulePosition();
         drive();
         report();
+    }
+
+    public static void test() {
+        SwerveDef.frModule.setAngle(+50);
     }
 
     /**
      * Function for setting up the speeds of the modules based on controller input and state optimization
      */
     public static void drive() {
-        xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT * addDriveCoeff;
-        ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT * addDriveCoeff;
-        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT * addDriveCoeff; 
+        xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT; 
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(ySpeed, xSpeed, rotation));
 
@@ -145,9 +148,9 @@ public class SwerveDrive {
      * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
-        xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT * addDriveCoeff;
-        ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT * addDriveCoeff;
-        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT * addDriveCoeff;
+        xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
 
@@ -246,10 +249,11 @@ public class SwerveDrive {
     }
 
     public static void report() {
-        SmartDashboard.putNumber("FL encoder", SwerveDef.flModule.clampContinuousDegs());
-        SmartDashboard.putNumber("FR encoder", SwerveDef.flModule.clampContinuousDegs());
-        SmartDashboard.putNumber("RL encoder", SwerveDef.flModule.clampContinuousDegs());
-        SmartDashboard.putNumber("RR encoder", SwerveDef.flModule.clampContinuousDegs());
+        SmartDashboard.putNumber("FL encoder", SwerveDef.flModule.getNeoAngle());
+        SmartDashboard.putNumber("FR encoder", SwerveDef.frModule.getNeoAngle());
+        SmartDashboard.putNumber("RL encoder", SwerveDef.rlModule.getNeoAngle());
+        SmartDashboard.putNumber("RR encoder", SwerveDef.rrModule.getNeoAngle());
+
 
         SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
     }

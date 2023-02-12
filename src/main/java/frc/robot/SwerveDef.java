@@ -6,7 +6,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
-
+import com.revrobotics.SparkMaxAbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.RelativeEncoder;
@@ -55,11 +55,13 @@ public class SwerveDef {
     // should create a lib for this
     public static class SwerveModule {
         public RelativeEncoder neoEncoder;
+        public SparkMaxAbsoluteEncoder neoAbsEncoder;
         public SparkMaxPIDController neoController;
         public SteerMotor steerMotor;
         public DriveMotor driveMotor;
         public SteerSensor steerSensor;
         public pidValues drivePID, steerPID;
+        public initPID turnPID;
 
         public SwerveModule(SteerMotor sMotor, pidValues sPID, DriveMotor dMotor, pidValues dPID, SteerSensor sensor) {
             steerMotor = sMotor;
@@ -67,6 +69,7 @@ public class SwerveDef {
             drivePID = dPID;
             steerPID = sPID;
             steerSensor = sensor;
+            turnPID = new initPID(steerPID.kP, steerPID.kI, steerPID.kD, 1, 0);
             neoController = steerMotor.getPIDController();
             neoEncoder = steerMotor.getEncoder(); //should return NEO built-in encoder
         }
@@ -87,7 +90,7 @@ public class SwerveDef {
             steerMotor.setOpenLoopRampRate(0.2);
             steerMotor.setClosedLoopRampRate(0.2);
 
-            neoEncoder.setPositionConversionFactor(1 / STEER_FEEDBACK_COEFFICIENT); //TODO test if this returns module degrees
+            neoEncoder.setPositionConversionFactor(1/STEER_FEEDBACK_COEFFICIENT); //TODO test if this returns module degrees
 
             neoController.setP(steerPID.kP);
             neoController.setI(steerPID.kI);
@@ -96,7 +99,7 @@ public class SwerveDef {
             neoController.setIZone(300);
             neoController.setOutputRange(-1, 1);
             neoController.setFeedbackDevice(neoEncoder);
-            zeroSwerve();
+            zeroEncoder(); //TODO change back to zeroSwerve
         }
 
         public void disabledInit() {
@@ -109,6 +112,10 @@ public class SwerveDef {
             steerMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         }
 
+        public void zeroEncoder() {
+            neoEncoder.setPosition(0);
+        }
+
         public void zeroSwerve() {
             double supposedZero = clampContinuousDegs() * STEER_FEEDBACK_COEFFICIENT;
             neoEncoder.setPosition(supposedZero);
@@ -116,7 +123,7 @@ public class SwerveDef {
 
         public SwerveModuleState getState() {
             double speed=driveMotor.getSelectedSensorVelocity(0) * DRIVE_DIST_PER_WHEEL_REV / (0.1 * DRIVE_TICKS_PER_MOTOR_REV);
-            Rotation2d rotation=new Rotation2d(Math.toRadians(neoEncoder.getPosition() / STEER_FEEDBACK_COEFFICIENT));
+            Rotation2d rotation=new Rotation2d(Math.toRadians(neoEncoder.getPosition()));
             return new SwerveModuleState(speed, rotation);
         }
         /**
@@ -139,22 +146,33 @@ public class SwerveDef {
             double encoderPosition = neoEncoder.getPosition(); //degrees, can be over 360
             double toFullCircle = Math.IEEEremainder(encoderPosition, 360);
             double newAngle = angleToSet + encoderPosition - toFullCircle;
-
-            if (newAngle - encoderPosition > 180.1) {
+            
+            if (newAngle - encoderPosition > 180) {
                 newAngle -= 360;
-            } else if (newAngle - encoderPosition < -180.1) {
+            } else if (newAngle - encoderPosition < -180) {
                 newAngle += 360;
             }
-
+            
             neoController.setReference(newAngle, CANSparkMax.ControlType.kPosition); // runs PID with adjusted angle over 360 degs
         }
 
         public void setState(SwerveModuleState stateToSet) {
-            SwerveModuleState optimizedState = SwerveModuleState.optimize(stateToSet, new Rotation2d(neoEncoder.getPosition() / STEER_FEEDBACK_COEFFICIENT));
+            //SwerveModuleState optimizedState = SwerveModuleState.optimize(stateToSet, new Rotation2d(Math.toRadians(neoEncoder.getPosition())));
+            SwerveModuleState optimizedState = optimizeState(stateToSet, new Rotation2d(Math.toRadians(neoEncoder.getPosition())));
+            //SwerveModuleState optimizedState = stateToSet;
 
             setAngle(optimizedState.angle.getDegrees());
+            
+            //neoController.setReference(optimizedState.angle.getDegrees(), CANSparkMax.ControlType.kPosition);
+            //turnPID.setOffset(clampContinuousDegs(neoEncoder.getPosition()));
+            //turnPID.setTarget(optimizedState.angle.getDegrees());
+            //steerMotor.set(turnPID.pidGet());
 
             driveMotor.set(ControlMode.PercentOutput, optimizedState.speedMetersPerSecond / MAX_SPEED_MPS);
+        }
+
+        public double getNeoAngle() {
+            return neoEncoder.getPosition();
         }
 
         public double getBetterAnalogDegs() {
@@ -175,6 +193,16 @@ public class SwerveDef {
                 return toClamp + 360.0;
             } else if (toClamp > 180) {
                 return toClamp - 360.0;
+            } else {
+                return toClamp;
+            }
+        }
+
+        public double clampContinuousDegs(double toClamp) {
+            if (toClamp < -180) {
+                return 180-(toClamp%180.0);
+            } else if (toClamp > 180) {
+                return -180+(toClamp%180);
             } else {
                 return toClamp;
             }
@@ -238,15 +266,15 @@ public class SwerveDef {
     public static final boolean RL_STEER_INVERT_TYPE = false;
     public static final boolean RR_STEER_INVERT_TYPE = false;
 
-    public static final TalonFXInvertType FL_DRIVE_INVERT_TYPE = TalonFXInvertType.CounterClockwise;
-    public static final TalonFXInvertType FR_DRIVE_INVERT_TYPE = TalonFXInvertType.Clockwise;
-    public static final TalonFXInvertType RL_DRIVE_INVERT_TYPE = TalonFXInvertType.CounterClockwise;
-    public static final TalonFXInvertType RR_DRIVE_INVERT_TYPE = TalonFXInvertType.Clockwise;
+    public static final TalonFXInvertType FL_DRIVE_INVERT_TYPE = TalonFXInvertType.Clockwise;
+    public static final TalonFXInvertType FR_DRIVE_INVERT_TYPE = TalonFXInvertType.CounterClockwise;
+    public static final TalonFXInvertType RL_DRIVE_INVERT_TYPE = TalonFXInvertType.Clockwise;
+    public static final TalonFXInvertType RR_DRIVE_INVERT_TYPE = TalonFXInvertType.CounterClockwise;
 
-    public static final pidValues FL_STEER_PID_VALUES = new pidValues(9, 0, 0);
-    public static final pidValues FR_STEER_PID_VALUES = new pidValues(9, 0, 0);
-    public static final pidValues RL_STEER_PID_VALUES = new pidValues(9, 0, 0);
-    public static final pidValues RR_STEER_PID_VALUES = new pidValues(9, 0, 0);
+    public static final pidValues FL_STEER_PID_VALUES = new pidValues(0.01, 0, 0);
+    public static final pidValues FR_STEER_PID_VALUES = new pidValues(0.01, 0, 0);
+    public static final pidValues RL_STEER_PID_VALUES = new pidValues(0.01, 0, 0);
+    public static final pidValues RR_STEER_PID_VALUES = new pidValues(0.01, 0, 0);
 
     public static final pidValues FL_DRIVE_PID_VALUES = new pidValues(0, 0, 0);
     public static final pidValues FR_DRIVE_PID_VALUES = new pidValues(0, 0, 0);
@@ -275,14 +303,14 @@ public class SwerveDef {
     public static final double TURN_COEFFICIENT = 0.5;
     public static final double WHEEL_RADIUS = 0.05138; // m
     public static final double MAX_WHEEL_SPEED = 0.25;
-    public static final double WHEEL_BASE_WIDTH = 0.45;
-    public static final double TRACK_WIDTH = 0.44;
+    public static final double WHEEL_BASE_WIDTH = 0.585;
+    public static final double TRACK_WIDTH = 0.595;
     public static final double DRIVE_DIST_PER_WHEEL_REV = 2 * Math.PI * WHEEL_RADIUS; 
     public static final double DRIVE_DIST_PER_ROBOT_REV = 2 * Math.PI * Math.sqrt(Math.pow(WHEEL_BASE_WIDTH, 2) + Math.pow(TRACK_WIDTH, 2));
     public static final double MAX_SPEED_MPS = MAX_SPEED_TICKS_100_MS / 0.1 / FALCON_TICKS_PER_MOTOR_REV * DRIVE_DIST_PER_WHEEL_REV;
     public static final double MAX_SPEED_RADPS = MAX_SPEED_MPS / DRIVE_DIST_PER_ROBOT_REV * (2 * Math.PI);
 
-    public static final double STEER_FEEDBACK_COEFFICIENT = NEO_TICKS_PER_MOTOR_REV * 18.0 / 360.0; // check the 18, but it should stay
+    public static final double STEER_FEEDBACK_COEFFICIENT = 18.0 / 360.0; // check the 18, but it should stay
     public static final double DRIVE_TICKS_PER_MOTOR_REV = FALCON_TICKS_PER_MOTOR_REV * 10; // TICKS PER MOTOR REV*DRIVE GEAR RATIO
     public static final int TIMEOUT_MS = 20;
 

@@ -36,14 +36,18 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    Autonomous.init();
+  }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    Autonomous.periodic();
+  }
 
   @Override
   public void teleopInit() {
-    SwerveDef.flModule.enabledInit();
+    SwerveDef.flModule.enabledInit(); //TODO make this cleaner
     SwerveDef.frModule.enabledInit();
     SwerveDef.rlModule.enabledInit();
     SwerveDef.rrModule.enabledInit();
@@ -53,19 +57,29 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     SwerveDrive.periodic();
+    //SwerveDrive.test();
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    SwerveDef.flModule.disabledInit(); //TODO make this cleaner
+    SwerveDef.frModule.disabledInit();
+    SwerveDef.rlModule.disabledInit();
+    SwerveDef.rrModule.disabledInit();
+  }
 
   @Override
   public void disabledPeriodic() {}
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+    
+  }
 
   @Override
   public void simulationInit() {}
