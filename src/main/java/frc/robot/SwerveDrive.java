@@ -19,7 +19,7 @@ public class SwerveDrive {
     private static SwerveDrive SWERVE = new SwerveDrive();
 
     //control variables
-    static XboxController controller = SystemDef.controller;
+    static XboxController controller = RobotMap.controller;
     static final double MF_DRIVE_COEFF = 0.5; // change to lower if needed
     static double addDriveCoeff = 1;
 
