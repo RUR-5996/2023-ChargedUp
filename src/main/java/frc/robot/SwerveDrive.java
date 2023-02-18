@@ -62,6 +62,7 @@ public class SwerveDrive {
      */
     public void init() {
         updateModulePosition();
+        initFieldOriented();
         odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
         angleHoldController.disableContinuousInput();
         angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
@@ -103,6 +104,7 @@ public class SwerveDrive {
 
         //drive(0, 0, 0);
         drive();
+        //orientedDrive();
         report();
     }
 

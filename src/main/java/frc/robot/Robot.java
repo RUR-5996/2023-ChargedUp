@@ -52,11 +52,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    SwerveDrive.periodic();
+    SWERVE.periodic();
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    SwerveDef.flModule.disabledInit(); //TODO make this cleaner
+    SwerveDef.frModule.disabledInit();
+    SwerveDef.rlModule.disabledInit();
+    SwerveDef.rrModule.disabledInit();
+  }
 
   @Override
   public void disabledPeriodic() {}
