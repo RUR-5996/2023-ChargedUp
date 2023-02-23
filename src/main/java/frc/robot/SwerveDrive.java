@@ -103,8 +103,9 @@ public class SwerveDrive {
     public static void periodic() {
 
         //drive(0, 0, 0);
-        drive();
-        //orientedDrive();
+        updateModulePosition();
+        //drive();
+        orientedDrive();
         report();
     }
 
@@ -150,11 +151,9 @@ public class SwerveDrive {
         xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT * addDriveCoeff;
         ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT * addDriveCoeff;
         rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT * addDriveCoeff;
-
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveDef.MAX_SPEED_MPS);
-
         SwerveDef.flModule.setState(states[0]);
         SwerveDef.frModule.setState(states[1]);
         SwerveDef.rlModule.setState(states[2]);
