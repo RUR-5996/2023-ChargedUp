@@ -14,19 +14,26 @@ public class Manipulator {
     enum Grab {
         HOLD,
         GRIP,
+        LIGHTGRIP,
         LETGO,
     }
 
     static Timer buttonTimer = new Timer();
+
+    static long startTime;
+    static boolean isGripping = false;
 
     static Move move = Move.NONE;
     static Grab grab = Grab.HOLD;
 
     static boolean hasButtonStopped = false;
 
+
+
     public static void periodic() {
         moveCheck();
         grabCheck();
+        lightGripSet();
     }
 
     public static void toggleMove(Move moveToToggle, boolean condition) {
@@ -55,13 +62,28 @@ public class Manipulator {
                 break;
             case GRIP:
                 gripArmMovement = Constants.GRAB_SPEED * -1;
+                startTime = System.currentTimeMillis();
+                isGripping = true;
                 break;
             case LETGO:
                 gripArmMovement = Constants.GRAB_SPEED;
                 break;
+            case LIGHTGRIP:
+                gripArmMovement = Constants.GRAB_SPEED * -0.05;
         }
 
         RobotMap.gripper.set(gripArmMovement);
+    }
+
+
+    
+    public static void lightGripSet() {
+        if (!isGripping) return;
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - startTime > 100)
+            toggleGrab(Grab.LIGHTGRIP, true);
+        isGripping = false;
     }
 
     public static void moveCheck() {
