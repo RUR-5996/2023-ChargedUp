@@ -5,8 +5,22 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.ColorSensorV3;
 
-public class SystemDef {
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.I2C.Port;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+
+
+public class RobotMap {
 
     /*
      * Joystick map:
@@ -17,6 +31,10 @@ public class SystemDef {
 
     //TODO maybe add PS controller instead?
     public static XboxController controller = new XboxController(0);
+
+    public static final WPI_TalonFX mover1 = new WPI_TalonFX(0);
+    public static final WPI_TalonFX mover2 = new WPI_TalonFX(1);
+    public static final WPI_VictorSPX gripper = new WPI_VictorSPX(2);
 
     //TODO address joystick usage
     public static Joystick logitech = new Joystick(1);

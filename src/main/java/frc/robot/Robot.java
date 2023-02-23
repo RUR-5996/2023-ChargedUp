@@ -22,50 +22,37 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    SwerveDef.flModule.moduleInit();
-    SwerveDef.frModule.moduleInit();
-    SwerveDef.rlModule.moduleInit();
-    SwerveDef.rrModule.moduleInit();
-
-    SWERVE = SwerveDrive.getInstance();
+    
   }
 
   @Override
   public void robotPeriodic() {
-    SWERVE.report();
+    
   }
 
   @Override
   public void autonomousInit() {
-    Autonomous.init();
+    
   }
 
   @Override
   public void autonomousPeriodic() {
-    Autonomous.periodic();
+    
   }
 
   @Override
   public void teleopInit() {
-    SwerveDef.flModule.enabledInit(); //TODO make this cleaner
-    SwerveDef.frModule.enabledInit();
-    SwerveDef.rlModule.enabledInit();
-    SwerveDef.rrModule.enabledInit();
-    SWERVE.init();
+    
   }
 
   @Override
   public void teleopPeriodic() {
-    SwerveDrive.periodic();
-    //SwerveDrive.test();
+    Target.periodic();
   }
 
   @Override
   public void disabledInit() {
-    SwerveDef.flModule.disabledInit(); //TODO make this cleaner
-    SwerveDef.frModule.disabledInit();
-    SwerveDef.rlModule.disabledInit();
-    SwerveDef.rrModule.disabledInit();
+    
   }
 
   @Override
