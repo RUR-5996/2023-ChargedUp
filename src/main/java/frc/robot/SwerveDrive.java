@@ -15,42 +15,42 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SwerveDrive {
 
-    // single instance
+    //single instance
     private static SwerveDrive SWERVE = new SwerveDrive();
 
-    // control variables
+    //control variables
     static XboxController controller = RobotMap.controller;
 
     private static double xSpeed = 0;
     private static double ySpeed = 0;
     private static double rotation = 0;
 
+    public static double limelightAimRotation = 0;
+
     public static boolean fieldOriented = false;
     public static double holdAngle = 0;
-    public static boolean fieldRelative = false;
+    public static boolean fieldRelative = false; 
 
-    // module position definition
+    //module position definition
     static final Translation2d FL_LOC = new Translation2d(SwerveDef.WHEEL_BASE_WIDTH / 2, SwerveDef.TRACK_WIDTH / 2);
     static final Translation2d FR_LOC = new Translation2d(SwerveDef.WHEEL_BASE_WIDTH / 2, -SwerveDef.TRACK_WIDTH / 2);
     static final Translation2d RL_LOC = new Translation2d(-SwerveDef.WHEEL_BASE_WIDTH / 2, SwerveDef.TRACK_WIDTH / 2);
     static final Translation2d RR_LOC = new Translation2d(-SwerveDef.WHEEL_BASE_WIDTH / 2, -SwerveDef.TRACK_WIDTH / 2);
-    public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(FL_LOC, FR_LOC, RL_LOC,
-            RR_LOC);
+    public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(FL_LOC, FR_LOC, RL_LOC, RR_LOC);
     public static SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
 
     public static PIDController angleHoldController = new PIDController(0.1, 0, 0); // edit the vals
     public static SwerveDriveOdometry odometry;
 
-    // PID definitions
-    // TODO use built-in controllers for module init
-    // public static SwerveDef.SteerPID flInitController;
-    // public static SwerveDef.SteerPID frInitController;
-    // public static SwerveDef.SteerPID rlInitController;
-    // public static SwerveDef.SteerPID rrInitController;
+    //PID definitions
+    //TODO use built-in controllers for module init
+    //public static SwerveDef.SteerPID flInitController;
+    //public static SwerveDef.SteerPID frInitController;
+    //public static SwerveDef.SteerPID rlInitController;
+    //public static SwerveDef.SteerPID rrInitController;
 
     /**
      * Function for getting the single instance of this class
-     * 
      * @return SwerveDrive instance
      */
     public static SwerveDrive getInstance() {
@@ -61,12 +61,11 @@ public class SwerveDrive {
      * Function for setting up the SwerveDrive object
      */
     public void init() {
-        // updateModulePosition();
-        // odometry = new SwerveDriveOdometry(swerveKinematics,
-        // SwerveDef.gyro.getRotation2d(), modulePositions);
-        // angleHoldController.disableContinuousInput();
-        // angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
-        // testInit();
+        //updateModulePosition();
+        //odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
+        //angleHoldController.disableContinuousInput();
+        //angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+        //testInit();
     }
 
     /**
@@ -74,14 +73,10 @@ public class SwerveDrive {
      * TODO could be done in SwerveDef for cleaner code
      */
     public static void updateModulePosition() {
-        modulePositions[0] = new SwerveModulePosition(SwerveDef.flModule.getState().speedMetersPerSecond,
-                SwerveDef.flModule.getState().angle);
-        modulePositions[1] = new SwerveModulePosition(SwerveDef.frModule.getState().speedMetersPerSecond,
-                SwerveDef.frModule.getState().angle);
-        modulePositions[2] = new SwerveModulePosition(SwerveDef.rlModule.getState().speedMetersPerSecond,
-                SwerveDef.rlModule.getState().angle);
-        modulePositions[3] = new SwerveModulePosition(SwerveDef.rrModule.getState().speedMetersPerSecond,
-                SwerveDef.rrModule.getState().angle);
+        modulePositions[0] = new SwerveModulePosition(SwerveDef.flModule.getState().speedMetersPerSecond, SwerveDef.flModule.getState().angle);
+        modulePositions[1] = new SwerveModulePosition(SwerveDef.frModule.getState().speedMetersPerSecond, SwerveDef.frModule.getState().angle);
+        modulePositions[2] = new SwerveModulePosition(SwerveDef.rlModule.getState().speedMetersPerSecond, SwerveDef.rlModule.getState().angle);
+        modulePositions[3] = new SwerveModulePosition(SwerveDef.rrModule.getState().speedMetersPerSecond, SwerveDef.rrModule.getState().angle);
     }
 
     /**
@@ -106,7 +101,7 @@ public class SwerveDrive {
      */
     public static void periodic() {
 
-        // drive(0, 0, 0);
+        //drive(0, 0, 0);
         updateModulePosition();
         drive();
         report();
@@ -117,13 +112,12 @@ public class SwerveDrive {
     }
 
     /**
-     * Function for setting up the speeds of the modules based on controller input
-     * and state optimization
+     * Function for setting up the speeds of the modules based on controller input and state optimization
      */
     public static void drive() {
         xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT; 
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(ySpeed, xSpeed, rotation));
 
@@ -137,7 +131,6 @@ public class SwerveDrive {
 
     /**
      * Function for setting module speeds based on given input (semi)autonomous
-     * 
      * @param xSpeed
      * @param ySpeed
      * @param rotation
@@ -154,16 +147,14 @@ public class SwerveDrive {
     }
 
     /**
-     * Function for setting module speeds based on controller input during field
-     * oriented driving
+     * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
         xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT + limelightAimRotation;
 
-        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(
-                ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
+        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveDef.MAX_SPEED_MPS);
 
@@ -175,7 +166,6 @@ public class SwerveDrive {
 
     /**
      * Function for creating custom deadzone around joystick axis
-     * 
      * @param input raw axis value
      * @return filtered joystick input
      */
@@ -189,7 +179,7 @@ public class SwerveDrive {
 
     /**
      * @deprecated sets module rotation to 0
-     *             should be used with relative encoders
+     * should be used with relative encoders
      */
     public static void resetZero() {
         if (controller.getAButtonPressed()) {
@@ -204,12 +194,10 @@ public class SwerveDrive {
      * Function for starting the calibration routine of the swerve modules
      */
     public static void testInit() {
-        /*
-         * flInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-         * frInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-         * rlInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-         * rrInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-         */
+        /*flInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        frInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        rlInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
+        rrInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);*/
     }
 
     /**
@@ -217,24 +205,18 @@ public class SwerveDrive {
      * TODO check, if this works with absolute encoders
      */
     public static void zeroDrive() {
-        /*
-         * flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.
-         * flModule.getBetterAnalogDegs()));//TODO use built-in functions instead
-         * 
-         * frInitController.setOffset(SwerveDef.frModule.clampContinuousDegs(SwerveDef.
-         * frModule.getBetterAnalogDegs()));
-         * 
-         * rlInitController.setOffset(SwerveDef.rlModule.clampContinuousDegs(SwerveDef.
-         * rlModule.getBetterAnalogDegs()));
-         * 
-         * rrInitController.setOffset(SwerveDef.rrModule.clampContinuousDegs(SwerveDef.
-         * rrModule.getBetterAnalogDegs()));
-         * 
-         * SwerveDef.flSteer.set(ControlMode.PercentOutput, flInitController.pidGet());
-         * SwerveDef.frSteer.set(ControlMode.PercentOutput, frInitController.pidGet());
-         * SwerveDef.rlSteer.set(ControlMode.PercentOutput, rlInitController.pidGet());
-         * SwerveDef.rrSteer.set(ControlMode.PercentOutput, rrInitController.pidGet());
-         */
+        /*flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));//TODO use built-in functions instead
+
+        frInitController.setOffset(SwerveDef.frModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs()));
+
+        rlInitController.setOffset(SwerveDef.rlModule.clampContinuousDegs(SwerveDef.rlModule.getBetterAnalogDegs()));
+
+        rrInitController.setOffset(SwerveDef.rrModule.clampContinuousDegs(SwerveDef.rrModule.getBetterAnalogDegs()));
+
+        SwerveDef.flSteer.set(ControlMode.PercentOutput, flInitController.pidGet());
+        SwerveDef.frSteer.set(ControlMode.PercentOutput, frInitController.pidGet());
+        SwerveDef.rlSteer.set(ControlMode.PercentOutput, rlInitController.pidGet());
+        SwerveDef.rrSteer.set(ControlMode.PercentOutput, rrInitController.pidGet());*/
     }
 
     /**
@@ -256,12 +238,11 @@ public class SwerveDrive {
      * Function for reseting chassis odometry
      */
     static void resetOdometry() {
-        odometry.resetPosition(SwerveDef.gyro.getRotation2d(), modulePositions, new Pose2d());
+        odometry.resetPosition(SwerveDef.gyro.getRotation2d(), modulePositions, new Pose2d() );
     }
 
     /**
      * Function for setting custom chassis odometry (start of autonomous)
-     * 
      * @param pose
      * @param rot
      */
@@ -274,6 +255,7 @@ public class SwerveDrive {
         SmartDashboard.putNumber("FR encoder", SwerveDef.frModule.getNeoAngle());
         SmartDashboard.putNumber("RL encoder", SwerveDef.rlModule.getNeoAngle());
         SmartDashboard.putNumber("RR encoder", SwerveDef.rrModule.getNeoAngle());
+
 
         SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
     }

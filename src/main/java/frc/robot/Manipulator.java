@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+
 import edu.wpi.first.wpilibj.Timer;
 
 import edu.wpi.first.wpilibj.XboxController;
@@ -7,7 +9,7 @@ import edu.wpi.first.wpilibj.XboxController;
 public class Manipulator {
     //dva falcony zvedaj, redline nabírá
 
-    static XboxController secondController = RobotMap.controller;
+    static XboxController secondController = RobotMap.secondController;
 
     enum Move {
         NONE,
@@ -36,7 +38,24 @@ public class Manipulator {
 
     static boolean intakeIsMooving = false;
 
+    static boolean mover1Inverted = false;
+    static boolean mover2Inverted = false;
 
+    public static void init() {
+        RobotMap.mover1.setInverted(mover1Inverted);
+        RobotMap.mover1.setNeutralMode(NeutralMode.Brake);
+        RobotMap.mover1.configOpenloopRamp(0.2);
+
+        RobotMap.mover2.setInverted(mover2Inverted);
+        RobotMap.mover2.setNeutralMode(NeutralMode.Brake);
+        RobotMap.mover2.configOpenloopRamp(0.2);
+        RobotMap.mover2.follow(RobotMap.mover1);
+    }
+
+    public static void disabledInit() {
+        RobotMap.mover1.setNeutralMode(NeutralMode.Coast);
+        RobotMap.mover2.setNeutralMode(NeutralMode.Coast);
+    }
 
     public static void periodic() {
         moveCheck();
@@ -106,7 +125,7 @@ public class Manipulator {
         double gripperMovement = 0;
 
         toggleMove(Move.MOVE, intakeIsMooving);
-        toggleMove(Move.NONE, !intakeIsMooving);
+        //toggleMove(Move.NONE, !intakeIsMooving);
 
 //        toggleMove(Move.MOVEUP, secondController.getYButtonPressed());
 //        toggleMove(Move.MOVEDOWN, secondController.getXButtonPressed());
