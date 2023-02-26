@@ -2,13 +2,19 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Timer;
 
+import edu.wpi.first.wpilibj.XboxController;
+
 public class Manipulator {
     //dva falcony zvedaj, redline nabírá
 
+    static XboxController secondController = RobotMap.controller;
+
     enum Move {
         NONE,
-        MOVEUP,
-        MOVEDOWN,
+        MOVE,
+/*        MOVEUP,
+          MOVEDOWN,
+*/        
     }
     
     enum Grab {
@@ -28,12 +34,15 @@ public class Manipulator {
 
     static boolean hasButtonStopped = false;
 
+    static boolean intakeIsMooving = false;
+
 
 
     public static void periodic() {
         moveCheck();
         grabCheck();
         lightGripSet();
+        leftAxisUpdate();
     }
 
     public static void toggleMove(Move moveToToggle, boolean condition) {
@@ -53,8 +62,8 @@ public class Manipulator {
     public static void grabCheck() {
         double gripArmMovement = 0;
 
-        toggleGrab(Grab.GRIP, RobotMap.controller.getYButtonPressed());
-        toggleGrab(Grab.LETGO, RobotMap.controller.getXButtonPressed());
+        toggleGrab(Grab.GRIP, secondController.getBButtonPressed());
+        toggleGrab(Grab.LETGO, secondController.getAButtonPressed());
 
         switch (grab) {
             case HOLD:
@@ -86,23 +95,36 @@ public class Manipulator {
         isGripping = false;
     }
 
+    public static void leftAxisUpdate() {
+        if (secondController.getLeftX() == 0)
+            intakeIsMooving = false;
+        else
+            intakeIsMooving = true;
+    }
+
     public static void moveCheck() {
         double gripperMovement = 0;
 
-        toggleMove(Move.MOVEUP, RobotMap.controller.getYButtonPressed());
-        toggleMove(Move.MOVEDOWN, RobotMap.controller.getXButtonPressed());
+        toggleMove(Move.MOVE, intakeIsMooving);
+        toggleMove(Move.NONE, !intakeIsMooving);
+
+//        toggleMove(Move.MOVEUP, secondController.getYButtonPressed());
+//        toggleMove(Move.MOVEDOWN, secondController.getXButtonPressed());
 
         switch (move) {
             case NONE:
                 gripperMovement = 0;
                 break;
-            case MOVEUP:
-                gripperMovement = Constants.ARM_MOVEMENT_SPEED;
+            case MOVE:
+                gripperMovement = Constants.ARM_MOVEMENT_SPEED * secondController.getLeftX();
+                break;
+/*            case MOVEUP:
+                gripperMovement = Constants.ARM_MOVEMENT_SPEED * 1;
                 break;
             case MOVEDOWN:
                 gripperMovement = Constants.ARM_MOVEMENT_SPEED * -1;
                 break;
-
+*/
         }
 
         RobotMap.mover1.set(gripperMovement);
