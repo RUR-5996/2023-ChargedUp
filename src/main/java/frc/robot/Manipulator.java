@@ -96,7 +96,7 @@ public class Manipulator {
     }
 
     public static void leftAxisUpdate() {
-        if (secondController.getLeftX() == 0)
+        if (Math.abs(secondController.getLeftY()) < 0.1f)
             intakeIsMooving = false;
         else
             intakeIsMooving = true;
@@ -116,7 +116,7 @@ public class Manipulator {
                 gripperMovement = 0;
                 break;
             case MOVE:
-                gripperMovement = Constants.ARM_MOVEMENT_SPEED * secondController.getLeftX();
+                gripperMovement = Constants.ARM_MOVEMENT_SPEED * secondController.getLeftY();
                 break;
 /*            case MOVEUP:
                 gripperMovement = Constants.ARM_MOVEMENT_SPEED * 1;
