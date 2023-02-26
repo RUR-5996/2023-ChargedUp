@@ -22,14 +22,21 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
 
+  static SwerveDrive SWERVE;
+
   @Override
   public void robotInit() {
+    SwerveDef.flModule.moduleInit();
+    SwerveDef.frModule.moduleInit();
+    SwerveDef.rlModule.moduleInit();
+    SwerveDef.rrModule.moduleInit();
 
+    SWERVE = SwerveDrive.getInstance();
   }
 
   @Override
   public void robotPeriodic() {
-
+    SWERVE.report();
   }
 
   @Override
@@ -55,9 +62,11 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Manipulator.periodic();
     SwerveDrive.periodic();
+  }
 
   @Override
-    SwerveDef.flModule.disabledInit(); //TODO make this cleaner
+  public void disabledInit() {
+    SwerveDef.flModule.disabledInit(); // TODO make this cleaner
     SwerveDef.frModule.disabledInit();
     SwerveDef.rlModule.disabledInit();
     SwerveDef.rrModule.disabledInit();

@@ -7,14 +7,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Sensors {
 
-    // Limelight 
+    // Limelight
     static enum LimelightMode {
         PROCESSING,
         DRIVING
     }
 
-    static NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight"); // might need to change table
-                                                                                         // name
+    static NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight"); // might need to
+                                                                                                  // change table
+    // name
     static NetworkTableEntry limelightTx = limelightTable.getEntry("tx");
     static NetworkTableEntry limelightTy = limelightTable.getEntry("ty");
     static NetworkTableEntry limelightTa = limelightTable.getEntry("ta");
@@ -28,10 +29,10 @@ public class Sensors {
 
     // PUBLIC
 
-    public static void periodic(){
+    public static void periodic() {
         runLimelight();
 
-        if (SystemDef.controller.getBButtonPressed()) {
+        if (RobotMap.controller.getBButtonPressed()) {
             switchLimelightMode();
         }
 
@@ -42,7 +43,7 @@ public class Sensors {
         SmartDashboard.putString("LimelightMode", currentMode.toString());
         SmartDashboard.putNumber("LimelightX", limelightX);
         SmartDashboard.putNumber("LimelightY", limelightY);
-        SmartDashboard.putNumber("LimelightArea", limelightA);   
+        SmartDashboard.putNumber("LimelightArea", limelightA);
     }
 
     public static void switchLimelightMode() {
@@ -64,7 +65,7 @@ public class Sensors {
 
     // PRIVATE
 
-    static void runLimelight(){
+    static void runLimelight() {
         limelightX = limelightTx.getDouble(0.0);
         limelightY = limelightTy.getDouble(0.0);
         limelightA = limelightTa.getDouble(0.0);

@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-
 public class RobotMap {
 
     /*
@@ -15,8 +14,10 @@ public class RobotMap {
      * right stick: rotate
      */
 
-    //TODO maybe add PS controller instead?
+    // TODO maybe add PS controller instead?
     public static XboxController controller = new XboxController(0);
+
+    public static XboxController secondController = new XboxController(1);
 
     public static final WPI_TalonFX mover1 = new WPI_TalonFX(0);
     public static final WPI_TalonFX mover2 = new WPI_TalonFX(1);
