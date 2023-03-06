@@ -38,7 +38,7 @@ public class Manipulator {
 
     static boolean intakeIsMooving = false;
 
-    static boolean mover1Inverted = false;
+    static boolean mover1Inverted = false; //TODO change all interfacing to TalonFX-specific
     static boolean mover2Inverted = false;
 
     public static void init() {
@@ -64,14 +64,14 @@ public class Manipulator {
         leftAxisUpdate();
     }
 
-    public static void toggleMove(Move moveToToggle, boolean condition) {
+    public static void toggleMove(Move moveToToggle, boolean condition) { //doesn't apply condition, therefore automatically sets whatever state we input
         if (move == moveToToggle)
             move = Move.NONE;
         else
             move = moveToToggle;
     }
 
-    public static void toggleGrab(Grab grabToToggle, boolean condition) {
+    public static void toggleGrab(Grab grabToToggle, boolean condition) { //same as toggleMove()
         if (grab == grabToToggle)
             grab = Grab.HOLD;
         else
@@ -81,8 +81,8 @@ public class Manipulator {
     public static void grabCheck() {
         double gripArmMovement = 0;
 
-        toggleGrab(Grab.GRIP, secondController.getBButtonPressed());
-        toggleGrab(Grab.LETGO, secondController.getAButtonPressed());
+        toggleGrab(Grab.GRIP, secondController.getBButtonPressed()); //doesn't consider the input whatsoever
+        toggleGrab(Grab.LETGO, secondController.getAButtonPressed()); //same as above
 
         switch (grab) {
             case HOLD:
@@ -109,12 +109,12 @@ public class Manipulator {
         if (!isGripping) return;
 
         long currentTime = System.currentTimeMillis();
-        if (currentTime - startTime > 100)
+        if (currentTime - startTime > 100) //move the 100 to some constant for easier access
             toggleGrab(Grab.LIGHTGRIP, true);
         isGripping = false;
     }
 
-    public static void leftAxisUpdate() {
+    public static void leftAxisUpdate() { //good
         if (Math.abs(secondController.getLeftY()) < 0.1f)
             intakeIsMooving = false;
         else
@@ -124,8 +124,8 @@ public class Manipulator {
     public static void moveCheck() {
         double gripperMovement = 0;
 
-        toggleMove(Move.MOVE, intakeIsMooving);
-        //toggleMove(Move.NONE, !intakeIsMooving);
+        toggleMove(Move.MOVE, intakeIsMooving); //does't consider the input, therefore automatically turns the movement off
+        toggleMove(Move.NONE, !intakeIsMooving);
 
 //        toggleMove(Move.MOVEUP, secondController.getYButtonPressed());
 //        toggleMove(Move.MOVEDOWN, secondController.getXButtonPressed());
@@ -135,7 +135,7 @@ public class Manipulator {
                 gripperMovement = 0;
                 break;
             case MOVE:
-                gripperMovement = Constants.ARM_MOVEMENT_SPEED * secondController.getLeftY();
+                gripperMovement = Constants.ARM_MOVEMENT_SPEED * secondController.getLeftY(); //good
                 break;
 /*            case MOVEUP:
                 gripperMovement = Constants.ARM_MOVEMENT_SPEED * 1;

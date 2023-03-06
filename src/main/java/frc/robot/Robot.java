@@ -37,6 +37,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     SWERVE.report();
+    Test.report();
   }
 
   @Override
@@ -65,7 +66,8 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     //Manipulator.periodic();
     SwerveDrive.periodic();
-    Test.periodic();
+    //Test.periodic();
+    Test.pidFollow();
   }
 
   @Override
@@ -76,7 +78,7 @@ public class Robot extends TimedRobot {
     SwerveDef.rrModule.disabledInit();
 
     //Manipulator.disabledInit();
-    Test.disabledInit();
+    //Test.disabledInit();
   }
 
   @Override

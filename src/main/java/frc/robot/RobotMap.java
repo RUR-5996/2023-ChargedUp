@@ -19,7 +19,8 @@ public class RobotMap {
 
     public static XboxController secondController = new XboxController(1);
 
-    public static final WPI_VictorSPX mover1 = new WPI_VictorSPX(0);
-    public static final WPI_VictorSPX mover2 = new WPI_VictorSPX(1);
+    public static final WPI_TalonFX mover1 = new WPI_TalonFX(7);
+    public static final WPI_TalonFX mover2 = new WPI_TalonFX(8); //right
     public static final WPI_VictorSPX gripper = new WPI_VictorSPX(2);
+    public static final WPI_VictorSPX release = new WPI_VictorSPX(3);
 }

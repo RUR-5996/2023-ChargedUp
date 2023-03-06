@@ -62,7 +62,7 @@ public class LimelightAiming{
     // PUBLIC
 
     public static void init(){
-        tapeLimelight1 = new LimelightNetwork("limelight1");
+        tapeLimelight1 = new LimelightNetwork("limelight1"); //tries to find 2 different cameras
         tapeLimelight2 = new LimelightNetwork("limelight2");
     }
 
@@ -80,11 +80,11 @@ public class LimelightAiming{
         report();
     }
     static void aim(){
-        if(!canAim) return;
+        if(!canAim) return; //watch the return in void functions!
         
         LimelightNetwork correctLimelight;
 
-        if(tapeLimelight1.V && tapeLimelight2.V){
+        if(tapeLimelight1.V && tapeLimelight2.V){ //would require quick switching between pipelines - hard to achieve
 
             if(tapeLimelight1.Y > tapeLimelight2.Y) 
                 correctLimelight = tapeLimelight1;
@@ -100,14 +100,15 @@ public class LimelightAiming{
         else{
             return;
         }
+        //good idea, but would require 2 cameras for maximum effectivity
 
         double rightAngle = -correctLimelight.X;
 
         if(MIN_TAPE_DISTANCE_AREA > correctLimelight.A) return;
         if(rightAngle <  MINIMAL_ROTATION) return;
         
-        SwerveDrive.limelightAimRotation = rightAngle * ROTATION_COEFICIENT;
-
+        SwerveDrive.limelightAimRotation = rightAngle * ROTATION_COEFICIENT; //is rotation enough? we could possibly be angled correctly but be off to one side. Alternatively, if we turn too much, we could hit the divider
+        //how do we actually use this?
     }
 
     public static void report() {
