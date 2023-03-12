@@ -300,15 +300,15 @@ public class SwerveDef {
     public static final double MAX_SPEED_TICKS_100_MS = 21900;
     public static final double DRIVE_MOTOR_GEARING = 6.92;
     public static final double DRIVE_COEFFICIENT = 0.3;
-    public static final double TURN_COEFFICIENT = 0.5;
+    public static final double TURN_COEFFICIENT = 0.3;
     public static final double WHEEL_RADIUS = 0.05138; // m
     public static final double MAX_WHEEL_SPEED = 0.25;
     public static final double WHEEL_BASE_WIDTH = 0.585;
     public static final double TRACK_WIDTH = 0.595;
     public static final double DRIVE_DIST_PER_WHEEL_REV = 2 * Math.PI * WHEEL_RADIUS; 
-    public static final double DRIVE_DIST_PER_ROBOT_REV = 2 * Math.PI * Math.sqrt(Math.pow(WHEEL_BASE_WIDTH, 2) + Math.pow(TRACK_WIDTH, 2));
-    public static final double MAX_SPEED_MPS = MAX_SPEED_TICKS_100_MS / 0.1 / FALCON_TICKS_PER_MOTOR_REV * DRIVE_DIST_PER_WHEEL_REV;
-    public static final double MAX_SPEED_RADPS = MAX_SPEED_MPS / DRIVE_DIST_PER_ROBOT_REV * (2 * Math.PI);
+    public static final double DRIVE_DIST_PER_ROBOT_REV = 0.5*Math.sqrt(Math.pow(WHEEL_BASE_WIDTH, 2) + Math.pow(TRACK_WIDTH, 2));
+    public static final double MAX_SPEED_MPS = 3.627737;
+    public static final double MAX_SPEED_RADPS = MAX_SPEED_MPS / DRIVE_DIST_PER_ROBOT_REV;
 
     public static final double STEER_FEEDBACK_COEFFICIENT = 18.0 / 360.0; // check the 18, but it should stay
     public static final double DRIVE_TICKS_PER_MOTOR_REV = FALCON_TICKS_PER_MOTOR_REV * 10; // TICKS PER MOTOR REV*DRIVE GEAR RATIO

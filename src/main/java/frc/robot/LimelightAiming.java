@@ -22,13 +22,15 @@ class LimelightNetwork{
     public boolean V = false;
 
     public LimelightNetwork(String key){
-        limelightTable = NetworkTableInstance.getDefault().getTable(key);
+        limelightTable = NetworkTableInstance.getDefault().getTable("limelight-top");
 
         tX = limelightTable.getEntry("tx");
         tY = limelightTable.getEntry("ty");
         tA = limelightTable.getEntry("ta");
         tV = limelightTable.getEntry("tv");
         pipeline = limelightTable.getEntry("pipeline");
+        
+        pipeline.setDouble(0);
     }
 
     public void update(){
@@ -37,19 +39,25 @@ class LimelightNetwork{
         A = tA.getDouble(0.0);
         V = tV.getDouble(0.0) == 1.0;
     }
+
+    public void changePipeline() {
+        if(pipeline.getDouble(0)==0) {
+            pipeline.setNumber(1);
+        } else if(pipeline.getDouble(0)==1) {
+            pipeline.setNumber(0);
+        }
+    }
 }
 
 
 public class LimelightAiming{
     
     static LimelightNetwork tapeLimelight1;
-    static LimelightNetwork tapeLimelight2;
-
 
     // Limelight 
     static enum LimelightMode {
-        PROCESSING,
-        DRIVING
+        DRIVING,
+        PROCESSING
     }
 
     public static final double MIN_TAPE_DISTANCE_AREA = 1;
@@ -57,13 +65,14 @@ public class LimelightAiming{
     public static final double MINIMAL_ROTATION = 3;
 
     public static boolean canAim = false;
+
+    public static LimelightMode mode = LimelightMode.DRIVING;
     
 
     // PUBLIC
 
     public static void init(){
-        tapeLimelight1 = new LimelightNetwork("limelight1"); //tries to find 2 different cameras
-        tapeLimelight2 = new LimelightNetwork("limelight2");
+        tapeLimelight1 = new LimelightNetwork("limelight");
     }
 
     public static void periodic(){
@@ -74,12 +83,17 @@ public class LimelightAiming{
             canAim = !canAim;
         }
 
-        aim();
+        if(RobotMap.secondController.getYButtonPressed()) {
+            tapeLimelight1.changePipeline();
+        }
 
+        if(RobotMap.controller.getYButtonPressed()) {
+            Robot.SWERVE.assistedDrive = !Robot.SWERVE.assistedDrive;
+        }
 
         report();
     }
-    static void aim(){
+    /*static void aim(){
         if(!canAim) return; //watch the return in void functions!
         
         LimelightNetwork correctLimelight;
@@ -109,14 +123,22 @@ public class LimelightAiming{
         
         SwerveDrive.limelightAimRotation = rightAngle * ROTATION_COEFICIENT; //is rotation enough? we could possibly be angled correctly but be off to one side. Alternatively, if we turn too much, we could hit the divider
         //how do we actually use this?
+    }*/
+
+    static void aim() {
+        switch(mode) {
+            case DRIVING:
+                break;
+            case PROCESSING:
+                Robot.SWERVE.assistedDrive = true;
+        }
     }
 
     public static void report() {
-        /* 
-        SmartDashboard.putString("LimelightMode", currentMode.toString());
-        SmartDashboard.putNumber("LimelightX", limelightX);
-        SmartDashboard.putNumber("LimelightY", limelightY);
-        SmartDashboard.putNumber("LimelightArea", limelightA);   */
+        SmartDashboard.putNumber("LimelightMode", tapeLimelight1.pipeline.getDouble(0 ));
+        SmartDashboard.putNumber("LimelightX", tapeLimelight1.X);
+        SmartDashboard.putNumber("LimelightY", tapeLimelight1.Y);
+        SmartDashboard.putNumber("LimelightArea", tapeLimelight1.A); 
     }
 
     
@@ -125,6 +147,5 @@ public class LimelightAiming{
 
     static void runLimelight(){
         tapeLimelight1.update();
-        tapeLimelight2.update();
     }
 }

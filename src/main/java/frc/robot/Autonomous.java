@@ -71,6 +71,7 @@ public class Autonomous {
                         (trajectory.getInitialState()).poseMeters.getRotation());
                 startTime = Timer.getFPGATimestamp();
                 status = "execute";
+                System.out.println("setup");
                 break;
 
             case "execute":
@@ -114,13 +115,23 @@ public class Autonomous {
             case "print_trajectory_time":
                 System.out.println(elapsedTime);
                 break;
-            // case ""
+            case "aim_lower_stick":
+                System.out.println("Targeting lower stick...");
+                AimLowerStick();
+                break;
+            case "aim_ground":
+                System.out.println("Targeting lower stick...");
+                // TODO
+                break;
+            // case "" TODO
             default:
                 System.out.println("Event " + eventName + " was not found.");
         }
     } 
 
-    
+    public static void AimLowerStick(){
+        // TODO
+    }   
 
 
     /*public static void init(){

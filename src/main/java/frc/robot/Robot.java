@@ -32,12 +32,19 @@ public class Robot extends TimedRobot {
     SwerveDef.rrModule.moduleInit();
 
     SWERVE = SwerveDrive.getInstance();
+    Rameno.robotInit();
+    Gripper.robotInit();
+    SWERVE.init();
+    LimelightAiming.init();
   }
 
   @Override
   public void robotPeriodic() {
     SWERVE.report();
-    Test.report();
+    //Test.report();
+    Rameno.report();
+    Gripper.report();
+    LimelightAiming.periodic();
   }
 
   @Override
@@ -59,15 +66,21 @@ public class Robot extends TimedRobot {
     SWERVE.init();
 
     //Manipulator.init();
-    Test.init();
+    //Test.init();
+    //Test.teleopInit();
+
+    Rameno.teleopInit();
+    Gripper.teleopInit();
   }
 
   @Override
   public void teleopPeriodic() {
     //Manipulator.periodic();
-    SwerveDrive.periodic();
+    SWERVE.periodic();
     //Test.periodic();
-    Test.pidFollow();
+    //Test.pidFollow();
+    Rameno.teleopPeriodic();
+    Gripper.teleopPeriodic();
   }
 
   @Override
@@ -79,10 +92,12 @@ public class Robot extends TimedRobot {
 
     //Manipulator.disabledInit();
     //Test.disabledInit();
+    Rameno.disabledInit();
   }
 
   @Override
   public void disabledPeriodic() {
+    Rameno.disabledPeriodic();
   }
 
   @Override

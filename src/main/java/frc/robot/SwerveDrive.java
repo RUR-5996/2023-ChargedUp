@@ -1,6 +1,8 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,8 +30,12 @@ public class SwerveDrive {
     public static double limelightAimRotation = 0;
 
     public static boolean fieldOriented = false;
-    public static double holdAngle = 0;
+    public static double holdAngle = Math.PI/2;
     public static boolean fieldRelative = false; 
+
+    public static boolean assistedDrive = false;
+
+    public static assistPID pid = new assistPID(0.1, 0, 0, 0);
 
     //module position definition
     static final Translation2d FL_LOC = new Translation2d(SwerveDef.WHEEL_BASE_WIDTH / 2, SwerveDef.TRACK_WIDTH / 2);
@@ -39,7 +45,7 @@ public class SwerveDrive {
     public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(FL_LOC, FR_LOC, RL_LOC, RR_LOC);
     public static SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
 
-    public static PIDController angleHoldController = new PIDController(0.1, 0, 0); // edit the vals
+    public static PIDController angleHoldController = new PIDController(0.01, 0, 0); // edit the vals
     public static SwerveDriveOdometry odometry;
 
     //PID definitions
@@ -61,10 +67,12 @@ public class SwerveDrive {
      * Function for setting up the SwerveDrive object
      */
     public void init() {
-        //updateModulePosition();
-        //odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
-        //angleHoldController.disableContinuousInput();
-        //angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+        //SwerveDef.gyro.setAngleAdjustment(90);
+        updateModulePosition();
+        odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
+        initFieldOriented();
+        angleHoldController.disableContinuousInput();
+        angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
         //testInit();
     }
 
@@ -85,7 +93,7 @@ public class SwerveDrive {
      */
     public static void initFieldOriented() {
         fieldRelative = true;
-        holdAngle = SwerveDef.gyro.getRotation2d().getRadians();
+        holdAngle = SwerveDef.gyro.getRotation2d().getRadians() - Math.PI/2;
     }
 
     /**
@@ -103,7 +111,11 @@ public class SwerveDrive {
 
         //drive(0, 0, 0);
         updateModulePosition();
-        drive();
+        if(assistedDrive) {
+            assistedDrive();
+        } else {
+            orientedDrive();
+        }
         report();
     }
 
@@ -150,9 +162,26 @@ public class SwerveDrive {
      * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
-        xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT + limelightAimRotation;
+        xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+
+        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveDef.MAX_SPEED_MPS);
+
+        SwerveDef.flModule.setState(states[0]);
+        SwerveDef.frModule.setState(states[1]);
+        SwerveDef.rlModule.setState(states[2]);
+        SwerveDef.rrModule.setState(states[3]);
+    }
+
+    public static void assistedDrive() {
+        pid.setOffset(LimelightAiming.tapeLimelight1.X);
+
+        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        xSpeed = pid.pidGet();
+        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
 
@@ -258,5 +287,27 @@ public class SwerveDrive {
 
 
         SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
+
+        SmartDashboard.putBoolean("auto aiming", assistedDrive);
+    }
+
+    static class assistPID extends PIDController{
+        double setpoint = 0;
+        double maxSpeed = 0;
+        double offset = 0;
+        public assistPID(double kP, double kI, double kD, double setpoint) {
+            super(kP, kI, kD);
+            this.setpoint = setpoint;
+            this.maxSpeed = SwerveDef.MAX_SPEED_MPS*SwerveDef.DRIVE_COEFFICIENT;
+        }
+
+        public void setOffset(double value) {
+            offset = value;
+        }
+
+        public double pidGet() {
+            double speed = MathUtil.clamp(super.calculate(offset, setpoint), -maxSpeed, maxSpeed);
+            return -speed;
+        }
     }
 }
