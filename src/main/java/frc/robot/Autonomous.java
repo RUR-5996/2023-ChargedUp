@@ -62,7 +62,7 @@ public class Autonomous {
     public static void periodic(){
         runTrajectory(currentTrajectory, Robot.SWERVE.odometry);
     }
-    public static void loadTrajectory(String pathName){
+    public static void loadTrajectory(String pathName){ 
         currentTrajectory = PathPlanner.loadPath(pathName, new PathConstraints(4, 3)); 
         newTrajectory();
     }
@@ -167,6 +167,8 @@ public class Autonomous {
             case "intake_gripper_cone":
                 Gripper.gripAutonomous(true, true);
                 break;
+            case "disable_gripper":
+                Gripper.disableMotor();
 
             default:
                 System.out.println("Event " + eventName + " was not found.");

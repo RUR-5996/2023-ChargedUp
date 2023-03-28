@@ -177,7 +177,7 @@ public class SwerveDrive {
             sideways = 0;
         }
         
-        if (SwerveDef.gyro.getRoll() < 0.5 && SwerveDef.gyro.getPitch() < 0.5) {
+        if (Math.abs(SwerveDef.gyro.getRoll()) < 7 && Math.abs(SwerveDef.gyro.getPitch()) < 7) {
             forward = 0;
             sideways = 0;
             return;
