@@ -27,6 +27,9 @@ public class SwerveDrive {
     private static double ySpeed = 0;
     private static double rotation = 0;
 
+    public static double forward = 0;
+    public static double sideways = 0;
+
     public static double limelightAimRotation = 0;
 
     public static boolean fieldOriented = false;
@@ -34,6 +37,9 @@ public class SwerveDrive {
     public static boolean fieldRelative = false; 
 
     public static boolean assistedDrive = false;
+
+    public static boolean rampToggle = false;
+    rampToggle = RobotMap.controller.getXButtonPressed;
 
     public static assistPID pid = new assistPID(0.1, 0, 0, 0);
 
@@ -165,7 +171,16 @@ public class SwerveDrive {
 
     public static void gyroMoverRamp(boolean condition){
         if(!condition) 
+            forward = 0;
+            sideways = 0;
             return;
+        if (SwerveDef.gyro.getRoll() < 0.5 && SwerveDef.gyro.getPitch() < 0.5) {
+            forward = 0;
+            sideways = 0;
+            return;
+        }
+        forward = -SwerveDef.gyro.getPitch();
+        sideways = -SwerveDef.gyro.getRoll();
         
         
     }
@@ -174,9 +189,10 @@ public class SwerveDrive {
      * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
-        gyroMoverRamp(true);
-        xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        gyroMoverRamp(getXButtonPressed);
+
+        xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + sideways * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + forward * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
