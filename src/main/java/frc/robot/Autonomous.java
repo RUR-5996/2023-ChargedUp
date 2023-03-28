@@ -40,6 +40,8 @@ public class Autonomous {
     static Queue<String> trajectoryQueue;
     static PathPlannerTrajectory currentTrajectory;// = PathPlanner.loadPath("New Path", 3, 2.5);
     static double kP = 3;
+
+    static int mirrorXaxis = 1;
     
     static HolonomicDriveController driveController = new HolonomicDriveController(new PIDController(kP, 0, 0),
             new PIDController(kP, 0, 0),
@@ -48,7 +50,13 @@ public class Autonomous {
 
     
     public static void init() {
-        loadTrajectory("first1");
+        int position = createSmartDashboardNumber("position", -1);
+        int team = createSmartDashboardNumber("team", -1);
+
+        if(position != -1 && team != -1) {
+            mirrorXaxis = team * 2 - 1;
+            loadTrajectory("first" + Integer.toString(position));
+        }
     }
 
     public static void periodic(){
@@ -84,7 +92,7 @@ public class Autonomous {
                     ChassisSpeeds speeds = driveController.calculate(odometry.getPoseMeters(),
                             ((PathPlannerState) trajectory.sample(elapsedTime)),
                             ((PathPlannerState) trajectory.sample(elapsedTime)).holonomicRotation);
-                    Robot.SWERVE.drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond,
+                    Robot.SWERVE.drive(speeds.vxMetersPerSecond * mirrorXaxis, speeds.vyMetersPerSecond,
                             speeds.omegaRadiansPerSecond);
                     runCurrentEvents(trajectory.getMarkers(), lastElapsedTime,elapsedTime);
                 } else {
@@ -165,6 +173,18 @@ public class Autonomous {
                 break;
         }
     } 
+
+    public static int createSmartDashboardNumber(String key, double defValue) {
+
+        // See if already on dashboard, and if so, fetch current value
+        int value = (int)SmartDashboard.getNumber(key, defValue);
+      
+        // Make sure value is on dashboard, puts back current value if already set
+        // otherwise puts back default value
+        SmartDashboard.putNumber(key, value);
+      
+        return value;
+      }
 
 
     /*public static void init(){
