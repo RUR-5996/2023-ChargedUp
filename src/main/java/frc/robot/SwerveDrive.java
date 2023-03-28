@@ -3,6 +3,7 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -137,6 +138,7 @@ public class SwerveDrive {
      * Function for setting up the speeds of the modules based on controller input and state optimization
      */
     public static void drive() {
+        
         xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT; 
@@ -168,6 +170,7 @@ public class SwerveDrive {
         SwerveDef.rrModule.setState(states[3]);
     }
 
+    
 
     public static void gyroMoverRamp(boolean condition){
         if(!condition) 
@@ -183,7 +186,8 @@ public class SwerveDrive {
         sideways = -SwerveDef.gyro.getRoll();
         
         
-    }
+            
+        }
 
     /**
      * Function for setting module speeds based on controller input during field oriented driving

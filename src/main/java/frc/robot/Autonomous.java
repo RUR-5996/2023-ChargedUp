@@ -3,6 +3,7 @@ package frc.robot;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
@@ -35,6 +36,8 @@ public class Autonomous {
 
     static String status = "ready";
 
+
+    static Queue<String> trajectoryQueue;
     static PathPlannerTrajectory currentTrajectory;// = PathPlanner.loadPath("New Path", 3, 2.5);
     static double kP = 3;
     
@@ -45,7 +48,7 @@ public class Autonomous {
 
     
     public static void init() {
-        loadTrajectory("test1");
+        loadTrajectory("first1");
     }
 
     public static void periodic(){
@@ -91,6 +94,11 @@ public class Autonomous {
                     status = "ready";
                 }
                 break;
+            case "ready":
+                if(!trajectoryQueue.isEmpty()){
+                    loadTrajectory(trajectoryQueue.remove());
+                }
+                break;
             default:
                 Robot.SWERVE.drive(0, 0, 0);
                 break;
@@ -117,6 +125,7 @@ public class Autonomous {
             case "print_trajectory_time":
                 System.out.println(elapsedTime);
                 break;
+
             case "release_rameno":
                 Rameno.startRelease();
                 break;
@@ -124,36 +133,38 @@ public class Autonomous {
             case "set_rameno_0":
                 Rameno.changePositionAutonomous(0);
                 break;
-
             case "set_rameno_1":
                 Rameno.changePositionAutonomous(1);
                 break;
-
             case "set_rameno_2":
                 Rameno.changePositionAutonomous(2);
                 break;
-                
             case "set_rameno_3":
                 Rameno.changePositionAutonomous(3);
                 break;
             case "set_rameno_4":
                 Rameno.changePositionAutonomous(4);
                 break;
-            case "release_gripper_box":
-                Gripper.outtake();
+
+
+            case "outtake_gripper_box":
+                Gripper.gripAutonomous(false, false);
                 break;
-            case "grab_gripper_box":
-                Gripper.outtake();
+            case "intake_gripper_box":
+                Gripper.gripAutonomous(true, false);
                 break;
+            case "outtake_gripper_cone":
+                Gripper.gripAutonomous(false, true);
+                break;
+            case "intake_gripper_cone":
+                Gripper.gripAutonomous(true, true);
+                break;
+
             default:
                 System.out.println("Event " + eventName + " was not found.");
                 break;
         }
     } 
-
-    public static void AimLowerStick(){
-        // TODO
-    }   
 
 
     /*public static void init(){
