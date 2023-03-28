@@ -79,14 +79,14 @@ public class LimelightAiming{
         runLimelight();
         SwerveDrive.limelightAimRotation = 0;
 
-        if (RobotMap.controller.getBButtonPressed()) {
+        /*if (RobotMap.controller.getBButtonPressed()) {
             canAim = !canAim;
-        }
+        }*/
 
-        if(RobotMap.secondController.getYButtonPressed()) {
+        if(RobotMap.controller.getBButtonPressed()) {
             tapeLimelight1.changePipeline();
         }
-
+        
         if(RobotMap.controller.getYButtonPressed()) {
             Robot.SWERVE.assistedDrive = !Robot.SWERVE.assistedDrive;
         }
@@ -125,14 +125,15 @@ public class LimelightAiming{
         //how do we actually use this?
     }*/
 
-    static void aim() {
+    /*static void aim() {
         switch(mode) {
             case DRIVING:
                 break;
             case PROCESSING:
                 Robot.SWERVE.assistedDrive = true;
+                break;
         }
-    }
+    }*/
 
     public static void report() {
         SmartDashboard.putNumber("LimelightMode", tapeLimelight1.pipeline.getDouble(0 ));

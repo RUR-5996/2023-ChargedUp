@@ -54,6 +54,16 @@ public class Gripper {
         }
     }
 
+    public static void gripAutonomous(boolean isIntake, boolean isCone){
+        double finalSpeed = isCone ? coneSpeed : cubeSpeed;
+        if(isIntake){
+            RobotMap.gripper.set(finalSpeed);
+        }
+        else{
+            RobotMap.gripper.set(-finalSpeed);
+        }
+    }
+
     public static void disableMotor() {
         RobotMap.gripper.set(0);
     }
