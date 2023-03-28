@@ -40,7 +40,6 @@ public class SwerveDrive {
     public static boolean assistedDrive = false;
 
     public static boolean rampToggle = false;
-    rampToggle = RobotMap.controller.getXButtonPressed;
 
     public static assistPID pid = new assistPID(0.1, 0, 0, 0);
 
@@ -126,7 +125,7 @@ public class SwerveDrive {
             orientedDrive();
         }
         
-
+        rampToggle = RobotMap.controller.getXButtonPressed();
         report();
     }
 
@@ -173,27 +172,29 @@ public class SwerveDrive {
     
 
     public static void gyroMoverRamp(boolean condition){
-        if(!condition) 
+        if(!condition) {
             forward = 0;
             sideways = 0;
-            return;
+        }
+        
         if (SwerveDef.gyro.getRoll() < 0.5 && SwerveDef.gyro.getPitch() < 0.5) {
             forward = 0;
             sideways = 0;
             return;
+        } 
+
+        if(condition) {
+            forward = -SwerveDef.gyro.getPitch();
+            sideways = -SwerveDef.gyro.getRoll();
         }
-        forward = -SwerveDef.gyro.getPitch();
-        sideways = -SwerveDef.gyro.getRoll();
-        
-        
-            
-        }
+
+    }
 
     /**
      * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
-        gyroMoverRamp(getXButtonPressed);
+        gyroMoverRamp(controller.getXButtonPressed());
 
         xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + sideways * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + forward * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
