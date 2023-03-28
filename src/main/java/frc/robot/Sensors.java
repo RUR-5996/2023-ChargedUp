@@ -31,7 +31,7 @@ public class Sensors {
     public static void periodic(){
         runLimelight();
 
-        if (SystemDef.controller.getBButtonPressed()) {
+        if (RobotMap.controller.getBButtonPressed()) {
             switchLimelightMode();
         }
 
@@ -49,11 +49,11 @@ public class Sensors {
         switch (currentMode) {
             case PROCESSING:
                 currentMode = LimelightMode.DRIVING;
-                limelightPipeline.setNumber(1); // driving cam
+                limelightPipeline.setNumber(1); // need to configure this on the camera itself
                 break;
             case DRIVING:
                 currentMode = LimelightMode.PROCESSING;
-                limelightPipeline.setNumber(0); // processing cam
+                limelightPipeline.setNumber(0); // 
                 break;
             default:
                 limelightPipeline.setNumber(1);

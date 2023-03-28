@@ -31,6 +31,8 @@ public class Autonomous {
     static double elapsedTime;
     static double lastElapsedTime;
 
+    static boolean isLimelightAiming = false;
+
     static String status = "ready";
 
     static PathPlannerTrajectory currentTrajectory;// = PathPlanner.loadPath("New Path", 3, 2.5);
@@ -71,6 +73,7 @@ public class Autonomous {
                         (trajectory.getInitialState()).poseMeters.getRotation());
                 startTime = Timer.getFPGATimestamp();
                 status = "execute";
+                System.out.println("setup");
                 break;
 
             case "execute":
@@ -114,13 +117,43 @@ public class Autonomous {
             case "print_trajectory_time":
                 System.out.println(elapsedTime);
                 break;
-            // case ""
+            case "release_rameno":
+                Rameno.startRelease();
+                break;
+
+            case "set_rameno_0":
+                Rameno.changePositionAutonomous(0);
+                break;
+
+            case "set_rameno_1":
+                Rameno.changePositionAutonomous(1);
+                break;
+
+            case "set_rameno_2":
+                Rameno.changePositionAutonomous(2);
+                break;
+                
+            case "set_rameno_3":
+                Rameno.changePositionAutonomous(3);
+                break;
+            case "set_rameno_4":
+                Rameno.changePositionAutonomous(4);
+                break;
+            case "release_gripper_box":
+                Gripper.outtake();
+                break;
+            case "grab_gripper_box":
+                Gripper.outtake();
+                break;
             default:
                 System.out.println("Event " + eventName + " was not found.");
+                break;
         }
     } 
 
-    
+    public static void AimLowerStick(){
+        // TODO
+    }   
 
 
     /*public static void init(){

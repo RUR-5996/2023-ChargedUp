@@ -7,14 +7,18 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the
+ * name of this class or
+ * the package after creating this project, you must also update the
+ * build.gradle file in the
  * project.
  */
 public class Robot extends TimedRobot {
   /**
-   * This function is run when the robot is first started up and should be used for any
+   * This function is run when the robot is first started up and should be used
+   * for any
    * initialization code.
    */
 
@@ -28,11 +32,19 @@ public class Robot extends TimedRobot {
     SwerveDef.rrModule.moduleInit();
 
     SWERVE = SwerveDrive.getInstance();
+    Rameno.robotInit();
+    Gripper.robotInit();
+    SWERVE.init();
+    LimelightAiming.init();
   }
 
   @Override
   public void robotPeriodic() {
     SWERVE.report();
+    //Test.report();
+    Rameno.report();
+    Gripper.report();
+    LimelightAiming.periodic();
   }
 
   @Override
@@ -47,29 +59,46 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    SwerveDef.flModule.enabledInit(); //TODO make this cleaner
+    SwerveDef.flModule.enabledInit(); // TODO make this cleaner
     SwerveDef.frModule.enabledInit();
     SwerveDef.rlModule.enabledInit();
     SwerveDef.rrModule.enabledInit();
     SWERVE.init();
+
+    //Manipulator.init();
+    //Test.init();
+    //Test.teleopInit();
+
+    Rameno.teleopInit();
+    Gripper.teleopInit();
   }
 
   @Override
   public void teleopPeriodic() {
-    SwerveDrive.periodic();
-    //SwerveDrive.test();
+    //Manipulator.periodic();
+    SWERVE.periodic();
+    //Test.periodic();
+    //Test.pidFollow();
+    Rameno.teleopPeriodic();
+    Gripper.teleopPeriodic();
   }
 
   @Override
   public void disabledInit() {
-    SwerveDef.flModule.disabledInit(); //TODO make this cleaner
+    SwerveDef.flModule.disabledInit(); // TODO make this cleaner
     SwerveDef.frModule.disabledInit();
     SwerveDef.rlModule.disabledInit();
     SwerveDef.rrModule.disabledInit();
+
+    //Manipulator.disabledInit();
+    //Test.disabledInit();
+    Rameno.disabledInit();
   }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    Rameno.disabledPeriodic();
+  }
 
   @Override
   public void testInit() {
@@ -78,12 +107,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-    
+
   }
 
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 }
