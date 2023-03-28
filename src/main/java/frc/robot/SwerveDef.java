@@ -83,7 +83,7 @@ public class SwerveDef {
             driveMotor.config_kD(0, drivePID.kD, TIMEOUT_MS);
             driveMotor.config_kF(0, drivePID.kF, TIMEOUT_MS);
             driveMotor.config_IntegralZone(0, 300); 
-            driveMotor.configOpenloopRamp(0.2);
+            driveMotor.configOpenloopRamp(0.25);
 
             steerMotor.restoreFactoryDefaults();
             steerMotor.setInverted(steerMotor.inverted);
@@ -299,8 +299,8 @@ public class SwerveDef {
     public static final double STEER_SENSOR_COEFF_TO_DEG = 360.0 / 5.0;
     public static final double MAX_SPEED_TICKS_100_MS = 21900;
     public static final double DRIVE_MOTOR_GEARING = 6.92;
-    public static final double DRIVE_COEFFICIENT = 0.3;
-    public static final double TURN_COEFFICIENT = 0.3;
+    public static final double DRIVE_COEFFICIENT = 0.5;
+    public static final double TURN_COEFFICIENT = 0.5;
     public static final double WHEEL_RADIUS = 0.05138; // m
     public static final double MAX_WHEEL_SPEED = 0.25;
     public static final double WHEEL_BASE_WIDTH = 0.585;

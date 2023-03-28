@@ -19,7 +19,7 @@ public class Rameno {
     static TalonFXInvertType mover2Inverted = TalonFXInvertType.Clockwise;
     static double feedbackCoefficient = (FALCON_TICKS_PER_REV * ARM_GEAR_RATIO); //counts in arm degrees TODO check the scale
 
-    static Position[] positions = new Position[6]; //TODO make positions for all the scenarios + name them for clear interpretation
+    static Position[] positions = new Position[7]; //TODO make positions for all the scenarios + name them for clear interpretation
     static int currentPositionId = 1;
     static boolean engaged = false;
 
@@ -81,13 +81,16 @@ public class Rameno {
         }
     }
 
+    static final double ENCODER_POSITION_COEF = 4; // should be 4 if 3 is working
+
     public static void setPositions() { //TODO make widget and name positions
-        positions[0] = new Position(600, 0); //lowest position
-        positions[1] = new Position(800, 1);
-        positions[2] = new Position(1200, 2);
-        positions[3] = new Position(1500, 3);
-        positions[4] = new Position(1800, 4);
-        positions[5] = new Position(3000, 5);
+        positions[0] = new Position(120 * ENCODER_POSITION_COEF, 0); //lowest position
+        positions[1] = new Position(600* ENCODER_POSITION_COEF, 1);
+        positions[2] = new Position(800* ENCODER_POSITION_COEF, 2);
+        positions[3] = new Position(1100* ENCODER_POSITION_COEF, 3);
+        positions[4] = new Position(1600* ENCODER_POSITION_COEF, 4);
+        positions[5] = new Position(2800 * ENCODER_POSITION_COEF, 5);
+        positions[6] = new Position(3200* ENCODER_POSITION_COEF, 6);
     }
 
     public static void releaseArm() {
@@ -100,13 +103,14 @@ public class Rameno {
     }
 
     public static void tryStartRelease() {
-        if(sController.getBackButtonPressed() && !releasing) { //TODO bind this in autonomous to release at the start of game
+        if(sController.getBackButtonPressed()) { //TODO bind this in autonomous to release at the start of game
             startRelease();
         }
     }
 
     public static void startRelease(){
         releaseTimer.reset();
+        releaseTimer.start();
         releasing = true;
     }
 
@@ -158,6 +162,19 @@ public class Rameno {
         changePosition();
         tryStartRelease(); //TODO make this autonomous for comp, maybe allow this to happen once
         setEngagement();
+    }
+
+    public static void autonomousPeriodic(){
+        if(releasing) {
+            releaseArm();
+            disengageArm();
+        } else if (engaged) {
+            setPosition(); 
+        } else {
+            disengageArm();
+        }
+
+        
     }
 
     public static void report() {

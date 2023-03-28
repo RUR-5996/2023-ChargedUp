@@ -8,8 +8,8 @@ public class Gripper {
 
     static boolean coneMode = false;
     static boolean onlyIntake = false;
-    static double coneSpeed = -0.8;
-    static double cubeSpeed = 0.6;
+    static double coneSpeed = -0.9;
+    static double cubeSpeed = 0.9;
     
     public static void motorInit() {
         RobotMap.gripper.configFactoryDefault();
@@ -69,9 +69,9 @@ public class Gripper {
     }
 
     public static void teleopPeriodic() {
-        if(RobotMap.controller.getLeftTriggerAxis() > 0.5) {
+        if(RobotMap.secondController.getLeftTriggerAxis() > 0.5 || RobotMap.controller.getLeftTriggerAxis() > 0.5) {
             intake();
-        } else if (RobotMap.controller.getRightTriggerAxis() > 0.5) {
+        } else if (RobotMap.secondController.getRightTriggerAxis() > 0.5 || RobotMap.controller.getRightTriggerAxis() > 0.5) {
             outtake();
         } else {
             disableMotor();

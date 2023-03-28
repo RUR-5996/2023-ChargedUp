@@ -57,6 +57,8 @@ public class Autonomous {
             mirrorXaxis = team * 2 - 1;
             loadTrajectory("first" + Integer.toString(position));
         }
+
+        Rameno.startRelease();
     }
 
     public static void periodic(){
@@ -134,7 +136,7 @@ public class Autonomous {
                 System.out.println(elapsedTime);
                 break;
 
-            case "release_rameno":
+            case "release_rameno": //does in the start
                 Rameno.startRelease();
                 break;
 

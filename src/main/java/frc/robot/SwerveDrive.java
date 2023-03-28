@@ -124,7 +124,8 @@ public class SwerveDrive {
         } else {
             orientedDrive();
         }
-        
+        gyroReset();
+
         rampToggle = RobotMap.controller.getXButtonPressed();
         report();
     }
@@ -282,12 +283,21 @@ public class SwerveDrive {
         SwerveDef.rrSteer.set(ControlMode.PercentOutput, rrInitController.pidGet());*/
     }
 
+    static boolean isGyroReset = false;
+
     /**
      * Function for zeroing gyroscope heading
      * Should not be used much during competition, takes long-ish time
      */
     static void gyroReset() {
-        SwerveDef.gyro.reset();
+        if(controller.getStartButton() && !isGyroReset){
+            isGyroReset = true;
+            SwerveDef.gyro.reset();
+
+        }
+        else{
+            isGyroReset = false;
+        }
     }
 
     /**
@@ -323,6 +333,7 @@ public class SwerveDrive {
         SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
 
         SmartDashboard.putBoolean("auto aiming", assistedDrive);
+        SmartDashboard.putBoolean("auto ramp move", rampToggle);
     }
 
     static class assistPID extends PIDController{
