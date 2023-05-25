@@ -19,6 +19,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.SerialPort.Port;
 
 public class SwerveDef {
 
@@ -258,7 +260,8 @@ public class SwerveDef {
 
     }
 
-    public static final AHRS gyro = new AHRS(SPI.Port.kMXP);
+    public static final AHRS gyro2 = new AHRS(SPI.Port.kMXP);
+    public static final AHRS gyro = new AHRS(I2C.Port.kOnboard);
 
     //TODO edit constants
     public static final boolean FL_STEER_INVERT_TYPE = false;
@@ -299,8 +302,8 @@ public class SwerveDef {
     public static final double STEER_SENSOR_COEFF_TO_DEG = 360.0 / 5.0;
     public static final double MAX_SPEED_TICKS_100_MS = 21900;
     public static final double DRIVE_MOTOR_GEARING = 6.92;
-    public static final double DRIVE_COEFFICIENT = 0.5;
-    public static final double TURN_COEFFICIENT = 0.5;
+    public static final double DRIVE_COEFFICIENT = 0.65;
+    public static final double TURN_COEFFICIENT = 0.65;
     public static final double WHEEL_RADIUS = 0.05138; // m
     public static final double MAX_WHEEL_SPEED = 0.25;
     public static final double WHEEL_BASE_WIDTH = 0.585;

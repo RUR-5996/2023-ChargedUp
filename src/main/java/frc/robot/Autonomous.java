@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
@@ -36,10 +37,12 @@ public class Autonomous {
 
     static String status = "ready";
 
+    static Timer startTimer = new Timer();
+
 
     static Queue<String> trajectoryQueue;
     static PathPlannerTrajectory currentTrajectory;// = PathPlanner.loadPath("New Path", 3, 2.5);
-    static double kP = 3;
+    static double kP = 2;
 
     static int mirrorXaxis = 1;
     
@@ -48,24 +51,54 @@ public class Autonomous {
             new ProfiledPIDController(kP * SwerveDef.MAX_SPEED_RADPS / SwerveDef.MAX_SPEED_MPS, 0, 0,
                     new Constraints(SwerveDef.MAX_SPEED_RADPS, SwerveDef.MAX_SPEED_RADPS)));
 
-    
+    public static void robotInit(){
+        createSmartDashboardNumber("position", -1);
+        createSmartDashboardNumber("team", -1);
+    }
+
     public static void init() {
         int position = createSmartDashboardNumber("position", -1);
         int team = createSmartDashboardNumber("team", -1);
+        
+        SwerveDef.flDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.frDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.rlDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.rrDrive.setNeutralMode(NeutralMode.Brake);
+
+        //temporary
+        position = 7;
+        team = 1;
+
+        trajectoryQueue = new LinkedList<String>();
+
+        Rameno.startRelease();
+        startTimer.reset();
+        startTimer.start();
+        waiting = false;
 
         if(position != -1 && team != -1) {
             mirrorXaxis = team * 2 - 1;
             loadTrajectory("first" + Integer.toString(position));
         }
 
-        Rameno.startRelease();
+        Robot.startTime = Timer.getFPGATimestamp();
     }
-
+    
+    static boolean waiting = false;
+    static double waitFinishTime = 0;
     public static void periodic(){
-        runTrajectory(currentTrajectory, Robot.SWERVE.odometry);
+        if(startTimer.get() > 2 && !waiting){
+            runTrajectory(currentTrajectory, Robot.SWERVE.odometry);
+        }
+        else if(waiting){
+            if(startTimer.get() < waitFinishTime){
+                waiting = false;
+            }
+        }
+        
     }
     public static void loadTrajectory(String pathName){ 
-        currentTrajectory = PathPlanner.loadPath(pathName, new PathConstraints(4, 3)); 
+        currentTrajectory = PathPlanner.loadPath(pathName, new PathConstraints(2, 3)); //double check with info in path planner and see if this has any influence on robot speed
         newTrajectory();
     }
     public static boolean isReady(){
@@ -75,6 +108,7 @@ public class Autonomous {
     static void newTrajectory() {
         status = "setup";
     }
+    static final double SPEED_COEF = 3.59/9.69;
 
     static void runTrajectory(PathPlannerTrajectory trajectory, SwerveDriveOdometry odometry/*, Rotation2d rot2d*/) {
         lastElapsedTime = elapsedTime;
@@ -87,6 +121,7 @@ public class Autonomous {
                 startTime = Timer.getFPGATimestamp();
                 status = "execute";
                 System.out.println("setup");
+                showEvents(trajectory.getMarkers());
                 break;
 
             case "execute":
@@ -94,15 +129,26 @@ public class Autonomous {
                     ChassisSpeeds speeds = driveController.calculate(odometry.getPoseMeters(),
                             ((PathPlannerState) trajectory.sample(elapsedTime)),
                             ((PathPlannerState) trajectory.sample(elapsedTime)).holonomicRotation);
-                    Robot.SWERVE.drive(speeds.vxMetersPerSecond * mirrorXaxis, speeds.vyMetersPerSecond,
-                            speeds.omegaRadiansPerSecond);
+                    Robot.SWERVE.drive(-speeds.vxMetersPerSecond*/*mirrorXaxis**/SPEED_COEF, -speeds.vyMetersPerSecond*SPEED_COEF,
+                            -speeds.omegaRadiansPerSecond); //prohodit vx a vy???
+                    SmartDashboard.putNumber("rotation auto", speeds.omegaRadiansPerSecond);
+                    SmartDashboard.putNumber("vx auto", speeds.vxMetersPerSecond);
+                    SmartDashboard.putNumber("vy auto", -speeds.vyMetersPerSecond);
                     runCurrentEvents(trajectory.getMarkers(), lastElapsedTime,elapsedTime);
                 } else {
                     Robot.SWERVE.drive(0, 0, 0);
                     Robot.SWERVE.holdAngle = ((PathPlannerState) trajectory.getEndState()).holonomicRotation
                             .getRadians();
-                    status = "ready";
+                    status = "stop";
+                    
                 }
+                break;
+            case "stop":
+                SwerveDef.rlModule.setAngle(135);
+                SwerveDef.rrModule.setAngle(45);
+                SwerveDef.frModule.setAngle(135);
+                SwerveDef.flModule.setAngle(45);
+                status = "ready";
                 break;
             case "ready":
                 if(!trajectoryQueue.isEmpty()){
@@ -115,7 +161,20 @@ public class Autonomous {
         }
     }
 
+    static void showEvents(List<EventMarker> allMarkers){
+        for(EventMarker eventMarker : allMarkers){
+            int i = 0;
+            for(String eventName : eventMarker.names){
+                SmartDashboard.putString(eventName,Double.toString(eventMarker.timeSeconds) + " : " + Integer.toString(i));
+                i+=1;
+            }
+        }
+    }
+
+
     static void runCurrentEvents(List<EventMarker> allMarkers, double timeFrom, double timeTo){
+        SmartDashboard.putNumber("auto time from",timeFrom);
+        SmartDashboard.putNumber("auto time to",timeTo);
        for(EventMarker eventMarker : allMarkers){
             if(eventMarker.timeSeconds >= timeFrom && eventMarker.timeSeconds < timeTo){
                 runEvents(eventMarker.names);
@@ -124,6 +183,7 @@ public class Autonomous {
     }
     static void runEvents(List<String> eventNames){
         for(String eventName : eventNames){
+            SmartDashboard.putString("das", eventName);
             runEvent(eventName);
         }
     }
@@ -133,13 +193,18 @@ public class Autonomous {
                 System.out.println("Test event called.");
                 break;
             case "print_trajectory_time":
-                System.out.println(elapsedTime);
+                SmartDashboard.putNumber("elapsed time", elapsedTime);
                 break;
 
             case "release_rameno": //does in the start
                 Rameno.startRelease();
                 break;
-
+            case "engage_rameno":
+                Rameno.engaged = true;
+                break;
+            case "disengage_rameno":
+                Rameno.engaged = false;
+                break;
             case "set_rameno_0":
                 Rameno.changePositionAutonomous(0);
                 break;
@@ -155,7 +220,21 @@ public class Autonomous {
             case "set_rameno_4":
                 Rameno.changePositionAutonomous(4);
                 break;
+            case "set_rameno_5":
+                Rameno.changePositionAutonomous(5);
+                break;
 
+            case "wait_1":
+                waitFinishTime = startTimer.get()+1;
+                startTime += 1;
+                waiting = true;
+                break;
+
+            case "wait_3":
+                waitFinishTime = startTimer.get()+3;
+                startTime += 3;
+                waiting = true;
+                break;
 
             case "outtake_gripper_box":
                 Gripper.gripAutonomous(false, false);

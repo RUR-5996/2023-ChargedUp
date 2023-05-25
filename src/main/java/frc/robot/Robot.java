@@ -23,6 +23,7 @@ public class Robot extends TimedRobot {
    */
 
   static SwerveDrive SWERVE;
+  static double startTime = 0;
 
   @Override
   public void robotInit() {
@@ -34,6 +35,8 @@ public class Robot extends TimedRobot {
     SWERVE = SwerveDrive.getInstance();
     Rameno.robotInit();
     Gripper.robotInit();
+    Autonomous.robotInit();
+    
     SWERVE.init();
     LimelightAiming.init();
   }
@@ -52,6 +55,8 @@ public class Robot extends TimedRobot {
     Autonomous.init();
   }
 
+
+  
   @Override
   public void autonomousPeriodic() {
     Autonomous.periodic();

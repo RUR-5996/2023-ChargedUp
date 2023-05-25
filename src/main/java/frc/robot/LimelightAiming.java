@@ -88,7 +88,7 @@ public class LimelightAiming{
         }
         
         if(RobotMap.controller.getYButtonPressed()) {
-            Robot.SWERVE.assistedDrive = !Robot.SWERVE.assistedDrive;
+            //Robot.SWERVE.assistedDrive = !Robot.SWERVE.assistedDrive;
         }
 
         report();

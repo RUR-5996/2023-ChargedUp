@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Vector;
@@ -40,6 +41,7 @@ public class SwerveDrive {
     public static boolean assistedDrive = false;
 
     public static boolean rampToggle = false;
+    public static boolean slowmode = false;
 
     public static assistPID pid = new assistPID(0.1, 0, 0, 0);
 
@@ -79,7 +81,22 @@ public class SwerveDrive {
         initFieldOriented();
         angleHoldController.disableContinuousInput();
         angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+
+        SwerveDef.flDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.frDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.rlDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.rrDrive.setNeutralMode(NeutralMode.Brake);
         //testInit();
+        
+    }
+
+    public static void ifEndMatch() {
+        if(controller.getAButtonPressed()){
+            SwerveDef.rlModule.setAngle(45);
+            SwerveDef.rrModule.setAngle(135);
+            SwerveDef.frModule.setAngle(45);
+            SwerveDef.flModule.setAngle(135);
+        }
     }
 
     /**
@@ -91,6 +108,13 @@ public class SwerveDrive {
         modulePositions[1] = new SwerveModulePosition(SwerveDef.frModule.getState().speedMetersPerSecond, SwerveDef.frModule.getState().angle);
         modulePositions[2] = new SwerveModulePosition(SwerveDef.rlModule.getState().speedMetersPerSecond, SwerveDef.rlModule.getState().angle);
         modulePositions[3] = new SwerveModulePosition(SwerveDef.rrModule.getState().speedMetersPerSecond, SwerveDef.rrModule.getState().angle);
+    }
+
+    public static void speedMode() {
+        if(RobotMap.secondController.getLeftStickButtonReleased() || RobotMap.secondController.getRightStickButtonReleased()) {
+            slowmode = !slowmode;
+        }
+        SmartDashboard.putBoolean("slow Mode", slowmode);
     }
 
     /**
@@ -116,7 +140,7 @@ public class SwerveDrive {
     public static void periodic() {
 
         //drive(0, 0, 0);
-
+        speedMode(); //for demostration purposes only
 
         updateModulePosition();
         if(assistedDrive) {
@@ -125,8 +149,9 @@ public class SwerveDrive {
             orientedDrive();
         }
         gyroReset();
+        ifEndMatch();
 
-        rampToggle = RobotMap.controller.getXButtonPressed();
+        //rampToggle = RobotMap.controller.getXButtonPressed();
         report();
     }
 
@@ -160,7 +185,8 @@ public class SwerveDrive {
      * @param rotation
      */
     public static void drive(double xSpeed, double ySpeed, double rotation) {
-        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(ySpeed, xSpeed, rotation));
+        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(xSpeed, ySpeed, rotation));
+        //SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, 0));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveDef.MAX_SPEED_MPS);
 
@@ -191,15 +217,30 @@ public class SwerveDrive {
 
     }
 
+    static double getPositivity(double number){
+        if (number == 0) return 0;
+        return number > 0 ? 1 : -1;
+    }
+
     /**
      * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
-        gyroMoverRamp(controller.getXButtonPressed());
+        //gyroMoverRamp(controller.getXButtonPressed());
 
-        xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + sideways * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + forward * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+        double leftX = deadzone(controller.getLeftX());
+        double leftY = deadzone(controller.getLeftY());
+        double rightX = deadzone(controller.getRightX());
+
+        xSpeed = leftX * leftX *getPositivity(leftX)* SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + sideways * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = leftY * leftY *getPositivity(leftY)* SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + forward * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        rotation = rightX * rightX *getPositivity(rightX)* SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+
+        if(slowmode) {
+            xSpeed /= 2;
+            ySpeed /= 2;
+            rotation /= 2;
+        }
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
 
@@ -246,12 +287,12 @@ public class SwerveDrive {
      * should be used with relative encoders
      */
     public static void resetZero() {
-        if (controller.getAButtonPressed()) {
+        /*if (controller.getAButtonPressed()) {
             SwerveDef.flModule.zeroSwerve();
             SwerveDef.frModule.zeroSwerve();
             SwerveDef.rlModule.zeroSwerve();
             SwerveDef.rrModule.zeroSwerve();
-        }
+        }*/
     }
 
     /**

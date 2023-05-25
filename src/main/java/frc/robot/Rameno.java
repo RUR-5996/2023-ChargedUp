@@ -19,7 +19,7 @@ public class Rameno {
     static TalonFXInvertType mover2Inverted = TalonFXInvertType.Clockwise;
     static double feedbackCoefficient = (FALCON_TICKS_PER_REV * ARM_GEAR_RATIO); //counts in arm degrees TODO check the scale
 
-    static Position[] positions = new Position[7]; //TODO make positions for all the scenarios + name them for clear interpretation
+    static Position[] positions = new Position[6]; //TODO make positions for all the scenarios + name them for clear interpretation
     static int currentPositionId = 1;
     static boolean engaged = false;
 
@@ -68,6 +68,7 @@ public class Rameno {
         RobotMap.mover1.setNeutralMode(NeutralMode.Coast);
         RobotMap.mover2.setNeutralMode(NeutralMode.Coast);
         RobotMap.release.setNeutralMode(NeutralMode.Coast);
+        
     }
 
     public static void robotInit() {
@@ -84,18 +85,17 @@ public class Rameno {
     static final double ENCODER_POSITION_COEF = 4; // should be 4 if 3 is working
 
     public static void setPositions() { //TODO make widget and name positions
-        positions[0] = new Position(120 * ENCODER_POSITION_COEF, 0); //lowest position
-        positions[1] = new Position(600* ENCODER_POSITION_COEF, 1);
-        positions[2] = new Position(800* ENCODER_POSITION_COEF, 2);
-        positions[3] = new Position(1100* ENCODER_POSITION_COEF, 3);
-        positions[4] = new Position(1600* ENCODER_POSITION_COEF, 4);
-        positions[5] = new Position(2800 * ENCODER_POSITION_COEF, 5);
-        positions[6] = new Position(3200* ENCODER_POSITION_COEF, 6);
+        positions[0] = new Position(400 * ENCODER_POSITION_COEF, 0); //lowest position
+        positions[1] = new Position(800* ENCODER_POSITION_COEF, 1);
+        positions[2] = new Position(1100* ENCODER_POSITION_COEF, 2);
+        positions[3] = new Position(1700* ENCODER_POSITION_COEF, 3);
+        positions[4] = new Position(2850 * ENCODER_POSITION_COEF, 4);
+        positions[5] = new Position(3200* ENCODER_POSITION_COEF, 5);
     }
 
     public static void releaseArm() {
         if(releasing && releaseTimer.get() < 1) {
-            RobotMap.release.set(-0.75);
+            RobotMap.release.set(0.75);
         } else if (releasing && releaseTimer.get() > 1) {
             releasing = false;
             RobotMap.release.set(0); //TODO check logic
@@ -109,29 +109,35 @@ public class Rameno {
     }
 
     public static void startRelease(){
+        releasing = true;
         releaseTimer.reset();
         releaseTimer.start();
-        releasing = true;
     }
 
     
 
     public static void setPosition() {
-        RobotMap.mover1.set(ControlMode.Position, positions[currentPositionId].getValue()); //the other motor should follow
+        RobotMap.mover1.set(ControlMode.Position, positions[currentPositionId].getValue() + adder); //the other motor should follow
     }
 
     public static void changePositionAutonomous(int position){ //TODO check this
         currentPositionId = position;
         triggered = false;
     }
-
+    static double adder = 5;
     public static void changePosition() {
         if(sController.getPOV() == 0 && !triggered && currentPositionId < positions.length - 1) {
             currentPositionId += 1;
             triggered = true;
-        } else if (sController.getPOV() == 180 && !triggered && currentPositionId > 1) {
+        } else if (sController.getPOV() == 180 && !triggered && currentPositionId > 0) {
             currentPositionId -= 1;
             triggered = true;
+        
+        } 
+        if (sController.getYButtonReleased()) {
+            adder += 100 * ENCODER_POSITION_COEF;
+        } else if (sController.getXButtonReleased()) {
+            adder -= 100 * ENCODER_POSITION_COEF;
         }
 
         if(sController.getPOV() == -1) {

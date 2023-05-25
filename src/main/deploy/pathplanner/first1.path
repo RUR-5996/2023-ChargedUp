@@ -2,67 +2,13 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 2.444156174026634,
-        "y": 4.451885046627237
+        "x": 14.037672285870888,
+        "y": 4.43
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.286694001959433,
-        "y": 4.4805145324576365
-      },
-      "holonomicAngle": -180.0,
-      "isReversal": false,
-      "velOverride": null,
-      "isLocked": false,
-      "isStopPoint": false,
-      "stopEvent": {
-        "names": [
-          "release_rameno"
-        ],
-        "executionBehavior": "parallel",
-        "waitBehavior": "none",
-        "waitTime": 0
-      }
-    },
-    {
-      "anchorPoint": {
-        "x": 1.5758014436020666,
-        "y": 4.430648379551429
-      },
-      "prevControl": {
-        "x": 2.0433433724010306,
-        "y": 4.523458761203237
-      },
-      "nextControl": {
-        "x": 2.0433433724010306,
-        "y": 4.523458761203237
-      },
-      "holonomicAngle": -180.0,
-      "isReversal": true,
-      "velOverride": null,
-      "isLocked": false,
-      "isStopPoint": true,
-      "stopEvent": {
-        "names": [
-          "release_gripper"
-        ],
-        "executionBehavior": "parallel",
-        "waitBehavior": "none",
-        "waitTime": 0
-      }
-    },
-    {
-      "anchorPoint": {
-        "x": 5.063754127508256,
-        "y": 4.752494647846439
-      },
-      "prevControl": {
-        "x": 4.777687586997023,
-        "y": 4.763926195915046
-      },
-      "nextControl": {
-        "x": 5.355734840151505,
-        "y": 4.740826762655384
+        "x": 14.10924600044689,
+        "y": 4.43
       },
       "holonomicAngle": 0.0,
       "isReversal": false,
@@ -78,22 +24,47 @@
     },
     {
       "anchorPoint": {
-        "x": 6.728651702917442,
-        "y": 4.579428632541476
+        "x": 14.9,
+        "y": 4.425268148781912
       },
       "prevControl": {
-        "x": 6.45667158752864,
-        "y": 4.507854917965475
+        "x": 14.423335314788906,
+        "y": 4.425268148781912
       },
       "nextControl": {
-        "x": 7.0006318183062435,
-        "y": 4.651002347117477
+        "x": 14.423335314788906,
+        "y": 4.425268148781912
       },
-      "holonomicAngle": 0,
-      "isReversal": false,
+      "holonomicAngle": 0.0,
+      "isReversal": true,
       "velOverride": null,
       "isLocked": false,
       "isStopPoint": true,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "after",
+        "waitTime": 1.0
+      }
+    },
+    {
+      "anchorPoint": {
+        "x": 12.804388415794378,
+        "y": 4.43
+      },
+      "prevControl": {
+        "x": 13.090683274098387,
+        "y": 4.43
+      },
+      "nextControl": {
+        "x": 11.791470848606988,
+        "y": 4.43
+      },
+      "holonomicAngle": 0.0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
       "stopEvent": {
         "names": [],
         "executionBehavior": "parallel",
@@ -103,15 +74,15 @@
     },
     {
       "anchorPoint": {
-        "x": 1.5688096288473279,
-        "y": 4.443404676283037
+        "x": 10.419435049396414,
+        "y": 4.43
       },
       "prevControl": {
-        "x": 2.0584619728136664,
-        "y": 4.778444237339603
+        "x": 10.138194974398003,
+        "y": 4.43
       },
       "nextControl": null,
-      "holonomicAngle": 180.0,
+      "holonomicAngle": 0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -129,22 +100,23 @@
   "isReversed": null,
   "markers": [
     {
-      "position": 1.3909090909090907,
+      "position": 1.6363636363636356,
       "names": [
-        "event",
-        "set_rameno_0"
+        "set_rameno_1",
+        "disable_gripper"
       ]
     },
     {
-      "position": 0.6000000000000001,
+      "position": 0.1636363636363636,
       "names": [
-        "set_rameno_2"
+        "engage_rameno",
+        "set_rameno_3"
       ]
     },
     {
-      "position": 3.2727272727272676,
+      "position": 0.98,
       "names": [
-        "grab_gripper_box"
+        "outtake_gripper_box"
       ]
     }
   ]

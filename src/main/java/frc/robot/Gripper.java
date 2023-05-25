@@ -28,10 +28,10 @@ public class Gripper {
 
     public static void switchMode() { //TODO change button layout
         if(RobotMap.secondController.getPOV() == 90) {
-            coneMode = true;
-        } else if(RobotMap.secondController.getPOV() == 270) {
+            coneMode = false; // useless
+        } /*else if(RobotMap.secondController.getPOV() == 270) {
             coneMode = false;
-        }
+        }*/
     }
 
     public static void intake() {
@@ -69,10 +69,10 @@ public class Gripper {
     }
 
     public static void teleopPeriodic() {
-        if(RobotMap.secondController.getLeftTriggerAxis() > 0.5 || RobotMap.controller.getLeftTriggerAxis() > 0.5) {
-            intake();
-        } else if (RobotMap.secondController.getRightTriggerAxis() > 0.5 || RobotMap.controller.getRightTriggerAxis() > 0.5) {
+        if(RobotMap.secondController.getLeftTriggerAxis() > 0.5 || RobotMap.secondController.getRightBumper() || RobotMap.controller.getLeftTriggerAxis() > 0.5 || RobotMap.controller.getRightBumper()) {
             outtake();
+        } else if (RobotMap.secondController.getRightTriggerAxis() > 0.5 || RobotMap.secondController.getLeftBumper() || RobotMap.controller.getRightTriggerAxis() > 0.5 || RobotMap.controller.getLeftBumper()) {
+            intake();
         } else {
             disableMotor();
         }
