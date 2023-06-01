@@ -16,6 +16,7 @@ import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -24,6 +25,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.util.concurrent.Event;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 
 public class Autonomous {
@@ -69,7 +71,9 @@ public class Autonomous {
         position = 7;
         team = 1;
 
-        trajectoryQueue = new LinkedList<String>();
+        trackLine = new TrackLine()
+            .Add(new TrackPoint(0, 0, 0))
+            .Add(new TrackPoint(Math.PI, 0,0 ));
 
         Rameno.startRelease();
         startTimer.reset();
@@ -84,17 +88,24 @@ public class Autonomous {
         Robot.startTime = Timer.getFPGATimestamp();
     }
     
+    static TrackLine trackLine;
     static boolean waiting = false;
     static double waitFinishTime = 0;
+    
     public static void periodic(){
-        if(startTimer.get() > 2 && !waiting){
-            runTrajectory(currentTrajectory, Robot.SWERVE.odometry);
+        
+        TargettingVelocity targetVelocity = trackLine.Get(Robot.SWERVE.odometry.getPoseMeters());
+        if(startTimer.get() < 1){
+            Robot.SWERVE.drive(targetVelocity.xSpeed, targetVelocity.ySpeed, targetVelocity.rotation);
+            //runTrajectory(currentTrajectory, Robot.SWERVE.odometry);
         }
-        else if(waiting){
-            if(startTimer.get() < waitFinishTime){
-                waiting = false;
-            }
+        else{
+           Robot.SWERVE.drive(0, 0, 0); 
         }
+
+        
+
+        
         
     }
     public static void loadTrajectory(String pathName){ 
@@ -257,6 +268,8 @@ public class Autonomous {
         }
     } 
 
+    
+
     public static int createSmartDashboardNumber(String key, double defValue) {
 
         // See if already on dashboard, and if so, fetch current value
@@ -285,5 +298,119 @@ public class Autonomous {
     static Command getFollowPathCommand(PathPlannerTrajectory traj, boolean isFirstPath){
         return new PrintCommand("not yet");
     } */
+
+}
+
+// class that describes one state in which the robot should be, recognized by the odomtetry
+class TrackPoint
+{
+    public double rotationRadians;
+    public double positionX;
+    public double positionY;
+    public String[] commands;
+
+    
+
+    public TrackPoint(double rotRad,double x, double y){
+        positionX = x;
+        positionY = y;
+        rotationRadians = TrackLine.FormatRotation(rotRad);
+        
+        
+    }
+}
+
+// used to pass the speed values directly to the move method (look TrackLine.Get())
+class TargettingVelocity{
+    public double rotation;
+    public double xSpeed;
+    public double ySpeed;
+
+    public static final TargettingVelocity Empty = new TargettingVelocity(0, 0, 0);
+
+    public TargettingVelocity(double rot, double x, double y){
+        rotation = rot;
+        xSpeed = x;
+        ySpeed = y;
+    }
+}
+
+// list of trackpoints that determines the robots movement and functions in autonomous
+class TrackLine{
+    private ArrayList<TrackPoint> points;
+    private int index;
+    private boolean finished;
+
+
+    public TrackLine(){
+        points = new ArrayList<TrackPoint>();
+        index = 0;
+        finished = false;
+    } 
+
+    public boolean IsFinished(){
+        return finished;
+    }
+
+    public TrackLine Restart(){
+        index = 0;
+        finished = false;
+        return this;
+    }
+
+    public TrackLine Add(TrackPoint point){
+        points.add(point);
+        return this;
+    }
+
+    public static final double MaxDeflectionPosition = 0.2;
+    public static final double MaxDeflectionRotation = 0.1;
+
+    // returns the values by such the robot should move
+    public TargettingVelocity Get(Pose2d gyroPos){
+        
+
+        TargettingVelocity targetVelocity = new TargettingVelocity(0,0,0);
+
+        DetectThere(gyroPos.getX(),gyroPos.getY(), gyroPos.getRotation().getRadians());
+        
+        // TO DO
+
+        if(finished) return targetVelocity;
+        
+        // TO DO
+
+        TrackPoint targetPoint = points.get(index);
+        targetVelocity.xSpeed = gyroPos.getX();
+        targetVelocity.ySpeed = gyroPos.getY();
+        targetVelocity.rotation = gyroPos.getRotation().getRadians();
+        
+        return targetVelocity;
+
+    }
+
+    public static double FormatRotation(double rotRad){
+        while(rotRad < 0){
+            rotRad += 2 * Math.PI;
+        }
+        while(rotRad > 2 * Math.PI){
+            rotRad += 2 * Math.PI;
+        }
+        return rotRad;
+    }
+
+    public boolean DetectThere(double posX, double posY, double rotRad){
+        TrackPoint targetPoint = points.get(index);
+        if(Math.abs(targetPoint.positionX - posX) < MaxDeflectionPosition){
+            if(Math.abs(targetPoint.positionY - posY) < MaxDeflectionPosition){
+                if(FormatRotation(targetPoint.rotationRadians - FormatRotation(rotRad)) < MaxDeflectionRotation){
+                    index++;
+                    return true;
+                }
+            }
+        }
+        
+        return false; 
+    }
 
 }
