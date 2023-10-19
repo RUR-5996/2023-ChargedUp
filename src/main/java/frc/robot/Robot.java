@@ -18,7 +18,7 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
 
-  static SwerveDrive SWERVE;
+  SwerveDrive SWERVE;
 
   @Override
   public void robotInit() {
@@ -28,58 +28,47 @@ public class Robot extends TimedRobot {
     SwerveDef.rrModule.moduleInit();
 
     SWERVE = SwerveDrive.getInstance();
+    SWERVE.init();
+
+    Intake.intakeInit();
+    Turret.turretInit();
+    
   }
 
   @Override
   public void robotPeriodic() {
+    Intake.robotPeriodic();
     SWERVE.report();
+    Turret.robotPeriodic();
   }
 
   @Override
-  public void autonomousInit() {
-    Autonomous.init();
-  }
+  public void autonomousInit() {}
 
   @Override
-  public void autonomousPeriodic() {
-    Autonomous.periodic();
-  }
+  public void autonomousPeriodic() {}
 
   @Override
-  public void teleopInit() {
-    SwerveDef.flModule.enabledInit(); //TODO make this cleaner
-    SwerveDef.frModule.enabledInit();
-    SwerveDef.rlModule.enabledInit();
-    SwerveDef.rrModule.enabledInit();
-    SWERVE.init();
-  }
+  public void teleopInit() {}
 
   @Override
   public void teleopPeriodic() {
-    SwerveDrive.periodic();
-    //SwerveDrive.test();
+    Intake.periodic();
+    SWERVE.periodic();
+    Turret.periodic();
   }
 
   @Override
-  public void disabledInit() {
-    SwerveDef.flModule.disabledInit(); //TODO make this cleaner
-    SwerveDef.frModule.disabledInit();
-    SwerveDef.rlModule.disabledInit();
-    SwerveDef.rrModule.disabledInit();
-  }
+  public void disabledInit() {}
 
   @Override
   public void disabledPeriodic() {}
 
   @Override
-  public void testInit() {
-
-  }
+  public void testInit() {}
 
   @Override
-  public void testPeriodic() {
-    
-  }
+  public void testPeriodic() {}
 
   @Override
   public void simulationInit() {}

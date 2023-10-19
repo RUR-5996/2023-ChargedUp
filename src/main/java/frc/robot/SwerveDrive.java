@@ -1,6 +1,8 @@
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,15 +21,27 @@ public class SwerveDrive {
     private static SwerveDrive SWERVE = new SwerveDrive();
 
     //control variables
-    static XboxController controller = SystemDef.controller;
+    static XboxController controller = RobotMap.controller;
 
     private static double xSpeed = 0;
     private static double ySpeed = 0;
     private static double rotation = 0;
 
+    public static double forward = 0;
+    public static double sideways = 0;
+
+    public static double limelightAimRotation = 0;
+
     public static boolean fieldOriented = false;
-    public static double holdAngle = 0;
+    public static double holdAngle = Math.PI/2;
     public static boolean fieldRelative = false; 
+
+    public static boolean assistedDrive = false;
+
+    public static boolean rampToggle = false;
+    public static boolean slowmode = false;
+
+    public static assistPID pid = new assistPID(0.1, 0, 0, 0);
 
     //module position definition
     static final Translation2d FL_LOC = new Translation2d(SwerveDef.WHEEL_BASE_WIDTH / 2, SwerveDef.TRACK_WIDTH / 2);
@@ -37,7 +51,7 @@ public class SwerveDrive {
     public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(FL_LOC, FR_LOC, RL_LOC, RR_LOC);
     public static SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
 
-    public static PIDController angleHoldController = new PIDController(0.1, 0, 0); // edit the vals
+    public static PIDController angleHoldController = new PIDController(0.01, 0, 0); // edit the vals
     public static SwerveDriveOdometry odometry;
 
     //PID definitions
@@ -59,11 +73,28 @@ public class SwerveDrive {
      * Function for setting up the SwerveDrive object
      */
     public void init() {
-        //updateModulePosition();
-        //odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
-        //angleHoldController.disableContinuousInput();
-        //angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+        //SwerveDef.gyro.setAngleAdjustment(90);
+        updateModulePosition();
+        odometry = new SwerveDriveOdometry(swerveKinematics, SwerveDef.gyro.getRotation2d(), modulePositions);
+        initFieldOriented();
+        angleHoldController.disableContinuousInput();
+        angleHoldController.setTolerance(Math.toRadians(2)); // the usual drift
+
+        SwerveDef.flDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.frDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.rlDrive.setNeutralMode(NeutralMode.Brake);
+        SwerveDef.rrDrive.setNeutralMode(NeutralMode.Brake);
         //testInit();
+        
+    }
+
+    public static void ifEndMatch() {
+        if(controller.getAButtonPressed()){
+            SwerveDef.rlModule.setAngle(45);
+            SwerveDef.rrModule.setAngle(135);
+            SwerveDef.frModule.setAngle(45);
+            SwerveDef.flModule.setAngle(135);
+        }
     }
 
     /**
@@ -77,13 +108,20 @@ public class SwerveDrive {
         modulePositions[3] = new SwerveModulePosition(SwerveDef.rrModule.getState().speedMetersPerSecond, SwerveDef.rrModule.getState().angle);
     }
 
+    public static void speedMode() {
+        if(RobotMap.secondController.getLeftStickButtonReleased() || RobotMap.secondController.getRightStickButtonReleased()) {
+            slowmode = !slowmode;
+        }
+        SmartDashboard.putBoolean("slow Mode", slowmode);
+    }
+
     /**
      * Function defining basic fieldOriented behavior
      * sets holdAngle
      */
     public static void initFieldOriented() {
         fieldRelative = true;
-        holdAngle = SwerveDef.gyro.getRotation2d().getRadians();
+        holdAngle = SwerveDef.gyro.getRotation2d().getRadians() - Math.PI/2;
     }
 
     /**
@@ -91,7 +129,7 @@ public class SwerveDrive {
      * Defaulted to FieldRelative driving
      */
     public static void initRobotOriented() {
-        fieldRelative = true;
+        fieldRelative = false;
     }
 
     /**
@@ -100,8 +138,18 @@ public class SwerveDrive {
     public static void periodic() {
 
         //drive(0, 0, 0);
+        speedMode(); //for demostration purposes only
+
         updateModulePosition();
-        drive();
+        if(assistedDrive) {
+            //assistedDrive(); TODO enable this later
+        } else {
+            orientedDrive();
+        }
+        gyroReset();
+        ifEndMatch();
+
+        //rampToggle = RobotMap.controller.getXButtonPressed();
         report();
     }
 
@@ -113,6 +161,7 @@ public class SwerveDrive {
      * Function for setting up the speeds of the modules based on controller input and state optimization
      */
     public static void drive() {
+        
         xSpeed = deadzone(controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
         rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT; 
@@ -134,7 +183,21 @@ public class SwerveDrive {
      * @param rotation
      */
     public static void drive(double xSpeed, double ySpeed, double rotation) {
-        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(ySpeed, xSpeed, rotation));
+        double leftX = deadzone(controller.getLeftX());
+        double leftY = deadzone(controller.getLeftY());
+        double rightX = deadzone(controller.getRightX());
+
+        xSpeed = leftX * leftX *getPositivity(leftX)* SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + sideways * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = leftY * leftY *getPositivity(leftY)* SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + forward * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        rotation = rightX * rightX *getPositivity(rightX)* SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+
+        if(slowmode) {
+            xSpeed /= 3;
+            ySpeed /= 3;
+            rotation /= 3;
+        }
+        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(xSpeed, ySpeed, rotation));
+        //SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, 0));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveDef.MAX_SPEED_MPS);
 
@@ -144,13 +207,51 @@ public class SwerveDrive {
         SwerveDef.rrModule.setState(states[3]);
     }
 
+    
+
+    public static void gyroMoverRamp(boolean condition){
+        if(!condition) {
+            forward = 0;
+            sideways = 0;
+        }
+        
+        if (Math.abs(SwerveDef.gyro.getRoll()) < 7 && Math.abs(SwerveDef.gyro.getPitch()) < 7) {
+            forward = 0;
+            sideways = 0;
+            return;
+        } 
+
+        if(condition) {
+            forward = -SwerveDef.gyro.getPitch();
+            sideways = -SwerveDef.gyro.getRoll();
+        }
+
+    }
+
+    static double getPositivity(double number){
+        if (number == 0) return 0;
+        return number > 0 ? 1 : -1;
+    }
+
     /**
      * Function for setting module speeds based on controller input during field oriented driving
      */
     public static void orientedDrive() {
-        xSpeed = deadzone(-controller.getLeftX()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        ySpeed = deadzone(-controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
-        rotation = deadzone(-controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+        //gyroMoverRamp(controller.getXButtonPressed());
+
+        double leftX = deadzone(controller.getLeftX());
+        double leftY = deadzone(controller.getLeftY());
+        double rightX = deadzone(controller.getRightX());
+
+        xSpeed = leftX * leftX *getPositivity(leftX)* SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + sideways * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        ySpeed = leftY * leftY *getPositivity(leftY)* SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT + forward * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        rotation = rightX * rightX *getPositivity(rightX)* SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+
+        if(slowmode) {
+            xSpeed /= 3;
+            ySpeed /= 3;
+            rotation /= 3;
+        }
 
         SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
 
@@ -161,6 +262,23 @@ public class SwerveDrive {
         SwerveDef.rlModule.setState(states[2]);
         SwerveDef.rrModule.setState(states[3]);
     }
+
+    /**public static void assistedDrive() {
+        pid.setOffset(LimelightAiming.tapeLimelight1.X);
+
+        ySpeed = deadzone(controller.getLeftY()) * SwerveDef.MAX_SPEED_MPS * SwerveDef.DRIVE_COEFFICIENT;
+        xSpeed = pid.pidGet();
+        rotation = deadzone(controller.getRightX()) * SwerveDef.MAX_SPEED_RADPS * SwerveDef.TURN_COEFFICIENT;
+
+        SwerveModuleState[] states = swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(ySpeed, xSpeed, rotation, SwerveDef.gyro.getRotation2d()));
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveDef.MAX_SPEED_MPS);
+
+        SwerveDef.flModule.setState(states[0]);
+        SwerveDef.frModule.setState(states[1]);
+        SwerveDef.rlModule.setState(states[2]);
+        SwerveDef.rrModule.setState(states[3]);
+    }*/
 
     /**
      * Function for creating custom deadzone around joystick axis
@@ -175,54 +293,22 @@ public class SwerveDrive {
         }
     }
 
-    /**
-     * @deprecated sets module rotation to 0
-     * should be used with relative encoders
-     */
-    public static void resetZero() {
-        if (controller.getAButtonPressed()) {
-            SwerveDef.flModule.zeroSwerve();
-            SwerveDef.frModule.zeroSwerve();
-            SwerveDef.rlModule.zeroSwerve();
-            SwerveDef.rrModule.zeroSwerve();
-        }
-    }
 
-    /**
-     * Function for starting the calibration routine of the swerve modules
-     */
-    public static void testInit() {
-        /*flInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-        frInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-        rlInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);
-        rrInitController = new SwerveDef.SteerPID(0.006, 0, 0, 1, 0);*/
-    }
-
-    /**
-     * Function for homing all the modules
-     * TODO check, if this works with absolute encoders
-     */
-    public static void zeroDrive() {
-        /*flInitController.setOffset(SwerveDef.flModule.clampContinuousDegs(SwerveDef.flModule.getBetterAnalogDegs()));//TODO use built-in functions instead
-
-        frInitController.setOffset(SwerveDef.frModule.clampContinuousDegs(SwerveDef.frModule.getBetterAnalogDegs()));
-
-        rlInitController.setOffset(SwerveDef.rlModule.clampContinuousDegs(SwerveDef.rlModule.getBetterAnalogDegs()));
-
-        rrInitController.setOffset(SwerveDef.rrModule.clampContinuousDegs(SwerveDef.rrModule.getBetterAnalogDegs()));
-
-        SwerveDef.flSteer.set(ControlMode.PercentOutput, flInitController.pidGet());
-        SwerveDef.frSteer.set(ControlMode.PercentOutput, frInitController.pidGet());
-        SwerveDef.rlSteer.set(ControlMode.PercentOutput, rlInitController.pidGet());
-        SwerveDef.rrSteer.set(ControlMode.PercentOutput, rrInitController.pidGet());*/
-    }
+    static boolean isGyroReset = false;
 
     /**
      * Function for zeroing gyroscope heading
      * Should not be used much during competition, takes long-ish time
      */
     static void gyroReset() {
-        SwerveDef.gyro.reset();
+        if(controller.getStartButton() && !isGyroReset){
+            isGyroReset = true;
+            SwerveDef.gyro.reset();
+
+        }
+        else{
+            isGyroReset = false;
+        }
     }
 
     /**
@@ -256,5 +342,28 @@ public class SwerveDrive {
 
 
         SmartDashboard.putNumber("gyro angle", SwerveDef.gyro.getAngle());
+
+        SmartDashboard.putBoolean("auto aiming", assistedDrive);
+        SmartDashboard.putBoolean("auto ramp move", rampToggle);
+    }
+
+    static class assistPID extends PIDController{
+        double setpoint = 0;
+        double maxSpeed = 0;
+        double offset = 0;
+        public assistPID(double kP, double kI, double kD, double setpoint) {
+            super(kP, kI, kD);
+            this.setpoint = setpoint;
+            this.maxSpeed = SwerveDef.MAX_SPEED_MPS*SwerveDef.DRIVE_COEFFICIENT;
+        }
+
+        public void setOffset(double value) {
+            offset = value;
+        }
+
+        public double pidGet() {
+            double speed = MathUtil.clamp(super.calculate(offset, setpoint), -maxSpeed, maxSpeed);
+            return -speed;
+        }
     }
 }
