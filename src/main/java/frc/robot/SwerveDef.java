@@ -19,6 +19,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.SerialPort.Port;
 
 public class SwerveDef {
 
@@ -83,7 +85,7 @@ public class SwerveDef {
             driveMotor.config_kD(0, drivePID.kD, TIMEOUT_MS);
             driveMotor.config_kF(0, drivePID.kF, TIMEOUT_MS);
             driveMotor.config_IntegralZone(0, 300); 
-            driveMotor.configOpenloopRamp(0.2);
+            driveMotor.configOpenloopRamp(0.25);
 
             steerMotor.restoreFactoryDefaults();
             steerMotor.setInverted(steerMotor.inverted);
@@ -258,7 +260,8 @@ public class SwerveDef {
 
     }
 
-    public static AHRS gyro = new AHRS(SPI.Port.kMXP);
+    public static final AHRS gyro = new AHRS(SPI.Port.kMXP);
+    public static final AHRS gyro2 = new AHRS(I2C.Port.kOnboard);
 
     //TODO edit constants
     public static final boolean FL_STEER_INVERT_TYPE = false;
@@ -299,38 +302,38 @@ public class SwerveDef {
     public static final double STEER_SENSOR_COEFF_TO_DEG = 360.0 / 5.0;
     public static final double MAX_SPEED_TICKS_100_MS = 21900;
     public static final double DRIVE_MOTOR_GEARING = 6.92;
-    public static final double DRIVE_COEFFICIENT = 0.3;
-    public static final double TURN_COEFFICIENT = 0.5;
+    public static final double DRIVE_COEFFICIENT = 0.65;
+    public static final double TURN_COEFFICIENT = 0.65;
     public static final double WHEEL_RADIUS = 0.05138; // m
     public static final double MAX_WHEEL_SPEED = 0.25;
-    public static final double WHEEL_BASE_WIDTH = 0.585;
-    public static final double TRACK_WIDTH = 0.595;
+    public static final double WHEEL_BASE_WIDTH = 0.38;
+    public static final double TRACK_WIDTH = 0.39;
     public static final double DRIVE_DIST_PER_WHEEL_REV = 2 * Math.PI * WHEEL_RADIUS; 
-    public static final double DRIVE_DIST_PER_ROBOT_REV = 2 * Math.PI * Math.sqrt(Math.pow(WHEEL_BASE_WIDTH, 2) + Math.pow(TRACK_WIDTH, 2));
-    public static final double MAX_SPEED_MPS = MAX_SPEED_TICKS_100_MS / 0.1 / FALCON_TICKS_PER_MOTOR_REV * DRIVE_DIST_PER_WHEEL_REV;
-    public static final double MAX_SPEED_RADPS = MAX_SPEED_MPS / DRIVE_DIST_PER_ROBOT_REV * (2 * Math.PI);
+    public static final double DRIVE_DIST_PER_ROBOT_REV = 0.5*Math.sqrt(Math.pow(WHEEL_BASE_WIDTH, 2) + Math.pow(TRACK_WIDTH, 2));
+    public static final double MAX_SPEED_MPS = 3.627737;
+    public static final double MAX_SPEED_RADPS = MAX_SPEED_MPS / DRIVE_DIST_PER_ROBOT_REV;
 
     public static final double STEER_FEEDBACK_COEFFICIENT = 18.0 / 360.0; // check the 18, but it should stay
     public static final double DRIVE_TICKS_PER_MOTOR_REV = FALCON_TICKS_PER_MOTOR_REV * 10; // TICKS PER MOTOR REV*DRIVE GEAR RATIO
     public static final int TIMEOUT_MS = 20;
 
-    public static SteerMotor flSteer = new SteerMotor(5, FL_STEER_INVERT_TYPE);
+    public static SteerMotor flSteer = new SteerMotor(23, FL_STEER_INVERT_TYPE);
     public static DriveMotor flDrive = new DriveMotor(3, FL_DRIVE_INVERT_TYPE);
     public static SteerSensor flSensor = new SteerSensor(1, FL_STEER_OFFSET);
     public static SwerveModule flModule = new SwerveModule(flSteer, FL_STEER_PID_VALUES, flDrive, FL_DRIVE_PID_VALUES, flSensor);
 
-    public static SteerMotor frSteer = new SteerMotor(8, FR_STEER_INVERT_TYPE);
-    public static DriveMotor frDrive = new DriveMotor(0, FR_DRIVE_INVERT_TYPE);
+    public static SteerMotor frSteer = new SteerMotor(1, FR_STEER_INVERT_TYPE);
+    public static DriveMotor frDrive = new DriveMotor(1, FR_DRIVE_INVERT_TYPE);
     public static SteerSensor frSensor = new SteerSensor(3, FR_STEER_OFFSET);
     public static SwerveModule frModule = new SwerveModule(frSteer, FR_STEER_PID_VALUES, frDrive, FR_DRIVE_PID_VALUES, frSensor);
 
-    public static SteerMotor rlSteer = new SteerMotor(7, RL_STEER_INVERT_TYPE);
+    public static SteerMotor rlSteer = new SteerMotor(22, RL_STEER_INVERT_TYPE);
     public static DriveMotor rlDrive = new DriveMotor(2, RL_DRIVE_INVERT_TYPE);
     public static SteerSensor rlSensor = new SteerSensor(0, RL_STEER_OFFSET);
     public static SwerveModule rlModule = new SwerveModule(rlSteer, RL_STEER_PID_VALUES, rlDrive, RL_DRIVE_PID_VALUES, rlSensor);
 
-    public static SteerMotor rrSteer = new SteerMotor(4, RR_STEER_INVERT_TYPE);
-    public static DriveMotor rrDrive = new DriveMotor(1, RR_DRIVE_INVERT_TYPE);
+    public static SteerMotor rrSteer = new SteerMotor(25, RR_STEER_INVERT_TYPE);
+    public static DriveMotor rrDrive = new DriveMotor(0, RR_DRIVE_INVERT_TYPE);
     public static SteerSensor rrSensor = new SteerSensor(2, RR_STEER_OFFSET);
     public static SwerveModule rrModule = new SwerveModule(rrSteer, RR_STEER_PID_VALUES, rrDrive, RR_DRIVE_PID_VALUES, rrSensor);
 }
